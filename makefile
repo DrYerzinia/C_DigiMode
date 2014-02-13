@@ -1,4 +1,7 @@
-all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer
+all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer bin/foward
+
+bin/foward: build/obj/foward.o
+	g++ -O3 -o bin/foward build/obj/foward.o
 
 bin/mixer: build/obj/mixer.o build/obj/Util.o
 	g++ -O3 -o bin/mixer build/obj/mixer.o build/obj/Util.o
@@ -17,6 +20,9 @@ bin/sound_device: build/obj/sound_device.o build/obj/Util.o
 
 bin/NOAA_ATP: build/obj/NOAA_ATP_main.o build/obj/NOAA_ATP.o build/obj/Util.o
 	g++ -O3 -o bin/NOAA_ATP build/obj/NOAA_ATP_main.o build/obj/NOAA_ATP.o build/obj/Util.o
+
+build/obj/foward.o: src/net/foward.cpp
+	g++ -O3 -o build/obj/foward.o -c src/net/foward.cpp
 
 build/obj/mixer.o: src/mixer/mixer.cpp
 	g++ -O3 -o build/obj/mixer.o -c src/mixer/mixer.cpp

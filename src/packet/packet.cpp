@@ -235,10 +235,19 @@ bool packet::proccess_byte(char data_point){
 
 		int current_value = 0;
 
-		if(fc1 > fc2 + offset)
-			current_value = 0;
-		else
-			current_value = 1;
+		// Not sure which way this sample should go
+		if(std::abs(fc1 - fc2) < noise_floor){
+
+			current_value = last;
+
+		} else {
+
+			if(fc1 > fc2 + offset)
+				current_value = 0;
+			else
+				current_value = 1;
+
+		}
 
 		if(last == -1) last = current_value;
 
@@ -252,7 +261,7 @@ bool packet::proccess_byte(char data_point){
 					if(same_count == 4){
 						if(freq_sync_found && packet_start){
 							bit_stuffing = true;
-						same_count = 0;
+							same_count = 0;
 						}
 					} else same_count++;
 				} else same_count = 0;
@@ -267,7 +276,6 @@ bool packet::proccess_byte(char data_point){
 			}
 			// needs hysteresis
 
-			bool match = true;
 			if(bit_sequence.size() >= 8
 			&& bit_sequence[bit_sequence.size()-8] == 0
 			&& bit_sequence[bit_sequence.size()-7] == 1
@@ -278,10 +286,9 @@ bool packet::proccess_byte(char data_point){
 			&& bit_sequence[bit_sequence.size()-2] == 1
 			&& bit_sequence[bit_sequence.size()-1] == 0){
 
-				//std::cout << " FCS ";
-
 				if(packet_start) {
 					if(byte_sequence.size() >= 14){
+
 						packet_data pd;
 						char buffer[8];
 						for(int i = 0; i < 7; i++) buffer[i] = char((unsigned char)(byte_sequence[i])>>1);
@@ -314,7 +321,7 @@ bool packet::proccess_byte(char data_point){
 			}
 			if(freq_sync_found && bit_sequence.size() >= 15){
 				if(!packet_start){
-					//std::cout << "\n\nPACKETSTART\n\n";
+
 					packet_start = true;
 					//bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+1);
 				} else {

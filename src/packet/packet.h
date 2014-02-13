@@ -9,21 +9,24 @@
 #include <cmath>
 
 // REMOVE
-//#include <iostream>
+#include <iostream>
 //#include <iomanip>
 //#include <bitset>
 //#include <cctype>
 // END REMOVE
+
 
 #ifndef PI
 #define PI 3.14159265
 #endif
 
 struct packet_data {
+
 	std::vector<char> byte_sequence;
 	std::string destination_address;
 	std::string source_address;
 	std::vector<std::string> repeater_addresses;
+
 };
 
 unsigned short packet_data_CRCCCITT(packet_data &pd);
@@ -93,11 +96,5 @@ private:
 	std::vector<char> byte_sequence;
 
 	std::vector<packet_data> recived_packets;
-	
-/*
-	std::vector<char> last_byte_sequence;
-	std::string destination_address;
-	std::string source_address;
-	std::vector<std::string> repeater_addresses;
-*/
+
 };
