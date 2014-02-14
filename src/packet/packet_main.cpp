@@ -121,7 +121,12 @@ int main(int argc, char **argv){
 	if(noise_floor.compare("NULL"))
 		noise_floor_int = atoi(noise_floor.c_str());
 
-	packet pac(sample_rate_int, bit_rate_int, 0, 0, noise_floor_int);
+	std::string offset = util::getArgument("--offset");
+	int offset_int = 0;
+	if(offset.compare("NULL"))
+		offset_int = atoi(offset.c_str());
+
+	packet pac(sample_rate_int, bit_rate_int, offset_int, 0, noise_floor_int);
 
 	if(filename.compare("stdin") == 0){
 		char c;

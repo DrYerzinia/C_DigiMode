@@ -10,6 +10,7 @@
 
 // REMOVE
 #include <iostream>
+#include <fstream>
 //#include <iomanip>
 //#include <bitset>
 //#include <cctype>
@@ -61,7 +62,10 @@ public:
 
 private:
 
+	std::fstream debugs;
+
 	std::list<char> input_buffer;
+	std::list<float> fcd_buffer;
 
 	float sample_rate;
 	float bit_rate;
@@ -84,10 +88,12 @@ private:
 	int last;
 	int max;
 	int countlast;
+	int different_erasure_count;
 
 	int last_bit;
 
 	int same_count;
+	int master_count;
 	bool bit_stuffing;
 
 	bool freq_sync_found;
