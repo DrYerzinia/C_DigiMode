@@ -62,6 +62,8 @@ public:
 
 private:
 
+	void start_only();
+
 	std::fstream debugs;
 
 	std::list<char> input_buffer;
@@ -84,6 +86,9 @@ private:
 	float bitwidth;
 
 	std::vector<int> bit_sequence;
+
+	int fcMax;
+	int fcMin;
 
 	int last;
 	int max;

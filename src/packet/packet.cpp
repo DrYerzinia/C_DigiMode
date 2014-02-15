@@ -87,8 +87,7 @@ packet::packet(){
 	frequency_0 = 1200;
 	frequency_1 = 2200;
 
-	master_count = 0;
-
+	start_only();
 	init();
 
 }
@@ -105,8 +104,7 @@ packet::packet(float sr, float br){
 	frequency_0 = 1200;
 	frequency_1 = 2200;
 
-	master_count = 0;
-
+	start_only();
 	init();
 
 }
@@ -123,8 +121,7 @@ packet::packet(float sr, float br, float off, float hys, float nf){
 	frequency_0 = 1200;
 	frequency_1 = 2200;
 
-	master_count = 0;
-
+	start_only();
 	init();
 
 }
@@ -143,6 +140,7 @@ packet::packet(float sr, float br, float f0, float f1){
 
 	master_count = 0;
 
+	start_only();
 	init();
 
 }
@@ -159,13 +157,20 @@ packet::packet(float sr, float br, float off, float hys, float nf, float f0, flo
 	frequency_0 = f0;
 	frequency_1 = f1;
 
-	master_count = 0;
-
+	start_only();
 	init();
 
 }
 
 packet::~packet(){
+}
+
+void packet::start_only(){
+
+	fcMax = 0;
+	fcMin = 0;
+	master_count = 0;
+
 }
 
 void packet::init(){
@@ -237,13 +242,30 @@ bool packet::proccess_byte(char data_point){
 
 		float fc1 = s1i*s1i + s1q*s1q;
 		float fc2 = s2i*s2i + s2q*s2q;
-		float fcd = (fc1 - (fc2+offset));
+
+		float fcd = (fc1 - fc2);
+
+		if(fcd > fcMax)
+			fcMax = fcd*0.85 + fcMax*0.15;
+		else
+			fcMax = fcd*0.00015 + fcMax*0.99985;
+
+		if(fcd < fcMin)
+			fcMin = fcd*0.85 + fcMin*0.15;
+		else
+			fcMin = fcd*0.00015 + fcMin*0.99985;
+
+		float central_offset = (std::abs(fcMin)/(std::abs(fcMax)+std::abs(fcMin)));
+
+		int generated_offset = (fcMax-fcMin)*offset;
+
+		fcd -= generated_offset;
 
 		input_buffer.pop_front();
 
 		fcd_buffer.push_back(fcd);
 
-		if(fcd_buffer.size() > window/4){
+		if(fcd_buffer.size() > window){
 
 			int current_value = 0;
 
@@ -251,12 +273,12 @@ bool packet::proccess_byte(char data_point){
 			for(std::list<float>::iterator it = fcd_buffer.begin(); it != fcd_buffer.end(); it++)
 				fcd_avg += (*it);
 			fcd_avg /= fcd_buffer.size();
-if(!debugs.is_open()){debugs.open("out4.raw", std::fstream::out);}debugs.put(fcd_avg/10000);debugs.flush();
+
 			if(fcd_avg < 0)
 				current_value = 1;
 
 			fcd_buffer.pop_front();
-
+											//if(!debugs.is_open()){debugs.open("out.raw", std::fstream::out);}debugs.put(fcd_avg/10000);debugs.flush();
 			int real_value = current_value;
 			if(std::abs(fcd_avg) < noise_floor)
 				current_value = last;
@@ -266,7 +288,7 @@ if(!debugs.is_open()){debugs.open("out4.raw", std::fstream::out);}debugs.put(fcd
 			if(current_value != last){
 
 				float new_bits = ((float)(countlast-different_erasure_count))/((float)bitwidth);
-				std::cout << new_bits << " " << master_count << " ";
+				//std::cout << new_bits << " " << master_count << " ";
 
 				if(new_bits > 10){
 					reset();
@@ -288,13 +310,13 @@ if(!debugs.is_open()){debugs.open("out4.raw", std::fstream::out);}debugs.put(fcd
 					last_bit = current_value;
 					if(!(bit_stuffing && next_bit == 0 && fb)){
 						bit_sequence.push_back(next_bit);
-						std::cout << next_bit;
+						//std::cout << next_bit;
 					} else {
 						//std::cout << " BTST ";
 					}
 					if(fb) bit_stuffing = false;
 				}
-				std::cout << std::endl;
+				//std::cout << std::endl;
 				// needs hysteresis
 
 				if(bit_sequence.size() >= 8
