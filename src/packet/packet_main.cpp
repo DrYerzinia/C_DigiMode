@@ -17,8 +17,12 @@
  */
 void print_raw_packet(packet_data pd){
 
+	unsigned short length = pd.byte_sequence.size();
 	char *bytes = pd.byte_sequence.data();
-	std::cout.put(pd.byte_sequence.size());
+
+	std::cout.put((length>>8)&0xFF);
+	std::cout.put(length&0xFF);
+
 	std::cout.write(bytes, pd.byte_sequence.size());
 	std::cout.flush();
 

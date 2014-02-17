@@ -92,17 +92,37 @@ int main(int argc, char **argv){
 
 	bool running = true;
 
-	if(open_udp_socket(hostname, port) == -1) return -1;
+	if(open_udp_socket(hostname, port) == -1){
+		std::cerr << "Error creating socket" << std::endl;
+		return -1;
+	}
 
 	while(running){
 
-		char len;
-		if(!std::cin.get(len)) break;
-		if(!std::cin.read(buffer, len)) break;
+		char len1, len2;
+		if(!std::cin.get(len1)) break;
+		if(!std::cin.get(len2)) break;
 
-		std::cout << "Sending Packet Length: " << ((int)len) << std::endl;
+		unsigned short len;
 
-		if(send_data(len, buffer) == -1) break;
+		len = (((unsigned char)len1)<<8) + ((unsigned char)len2);
+
+		if(len > 1000){
+			std::cerr << "Buffer to small for packet!" << std::endl;
+			break;
+		}
+
+		if(!std::cin.read(buffer, len)){
+			std::cerr << "Failed to read data from stdin" << std::endl;
+			break;
+		}
+
+		std::clog << "Sending Packet Length: " << ((int)len) << std::endl;
+
+		if(send_data(len, buffer) == -1){
+			std::cerr << "Failed to send data to client via udp" << std::endl;
+			break;
+		}
 
 	}
 
