@@ -255,8 +255,6 @@ bool packet::proccess_byte(char data_point){
 		else
 			fcMin = fcd*0.00015 + fcMin*0.99985;
 
-		float central_offset = (std::abs(fcMin)/(std::abs(fcMax)+std::abs(fcMin)));
-
 		int generated_offset = (fcMax-fcMin)*offset;
 
 		fcd -= generated_offset;
@@ -267,143 +265,186 @@ bool packet::proccess_byte(char data_point){
 
 		if(fcd_buffer.size() > window){
 
-			int current_value = 0;
-
 			float fcd_avg = 0;
 			for(std::list<float>::iterator it = fcd_buffer.begin(); it != fcd_buffer.end(); it++)
 				fcd_avg += (*it);
 			fcd_avg /= fcd_buffer.size();
 
-			if(fcd_avg < 0)
-				current_value = 1;
-
 			fcd_buffer.pop_front();
 											//if(!debugs.is_open()){debugs.open("out.raw", std::fstream::out);}debugs.put(fcd_avg/10000);debugs.flush();
-			int real_value = current_value;
-			if(std::abs(fcd_avg) < noise_floor)
-				current_value = last;
+			//int real_value = current_value;
+			//if(std::abs(fcd_avg) < noise_floor)
+			//	current_value = last;
 
-			if(last == -1) last = current_value;
+			//if(last == -1) last = current_value;
 
-			if(current_value != last){
+			fcavg_buffer.push_back(fcd_avg);
+//			std::cout << fcavg_buffer.size() << std::endl;
 
-				float new_bits = ((float)(countlast-different_erasure_count))/((float)bitwidth);
-				//std::cout << new_bits << " " << master_count << " ";
+			int current_bits = fcavg_buffer.size();
 
-				if(new_bits > 10){
-					reset();
-					return false;
-				}
+			bool keep_going = true;
 
-				for(int i = 0; i < round(new_bits); i++){
-					int next_bit = 0;
-					bool fb = bit_stuffing;
-					if((current_value == 0 && last_bit == 0) || (current_value == 1 && last_bit == 1)){
-						next_bit = 1;
-						if(same_count == 4){
-							if(freq_sync_found && packet_start){
-								bit_stuffing = true;
-								same_count = 0;
-							}
-						} else same_count++;
-					} else same_count = 0;
-					last_bit = current_value;
-					if(!(bit_stuffing && next_bit == 0 && fb)){
-						bit_sequence.push_back(next_bit);
-						//std::cout << next_bit;
-					} else {
-						//std::cout << " BTST ";
-					}
-					if(fb) bit_stuffing = false;
-				}
-				//std::cout << std::endl;
-				// needs hysteresis
+			// Wait until we have a x+1 bits stored up
+			if(current_bits % ((int)bitwidth) == 0 && current_bits != 0 && current_bits != ((int)bitwidth)){
 
-				if(bit_sequence.size() >= 8
-				&& bit_sequence[bit_sequence.size()-8] == 0
-				&& bit_sequence[bit_sequence.size()-7] == 1
-				&& bit_sequence[bit_sequence.size()-6] == 1
-				&& bit_sequence[bit_sequence.size()-5] == 1
-				&& bit_sequence[bit_sequence.size()-4] == 1
-				&& bit_sequence[bit_sequence.size()-3] == 1
-				&& bit_sequence[bit_sequence.size()-2] == 1
-				&& bit_sequence[bit_sequence.size()-1] == 0){
+				int transition = 0;
 
-					if(packet_start) {
-						if(byte_sequence.size() >= 14){
+				// If no freq_sych lock to nearest zero crossing 50% ahead behind
+				if(1){//!freq_sync_found){
 
-							packet_data pd;
-							char buffer[8];
-							for(int i = 0; i < 7; i++) buffer[i] = char((unsigned char)(byte_sequence[i])>>1);
-							pd.destination_address = std::string(buffer, 7);
-							for(int i = 7; i < 14; i++) buffer[i-7] = char((unsigned char)(byte_sequence[i])>>1);
-							pd.source_address = std::string(buffer, 7);
+					// Zero crossing index
+					int zc_index = -1;
 
-							n = 14;
-							while(n < byte_sequence.size()){
-								if(byte_sequence[n] == 0x03 && (unsigned char)byte_sequence[n+1] == 0xF0) break;
-								for(int i = n; i < n+7; i++) buffer[i-n] = char((unsigned char)(byte_sequence[i])>>1);
-								n+=7;
-								pd.repeater_addresses.push_back(std::string(buffer, 7));
-							}
-
-							pd.byte_sequence = byte_sequence;
-
-							recived_packets.push_back(pd);
-
-							newByte = true;
+					int i;
+					// +/- half a bit
+					for(i = current_bits-bitwidth-(bitwidth/2); i < fcavg_buffer.size() && i < current_bits-bitwidth+(bitwidth/2); i++){
+						// If the bits are one negative one positive IE zero-crossing
+						std::list<float>::iterator it1 = fcavg_buffer.begin();
+						std::list<float>::iterator it2 = fcavg_buffer.begin();
+						std::advance(it1, i-1);
+						std::advance(it2,   i);
+						if( ((*it1) >= 0 && (*it2) < 0) || ((*it2) >= 0 && (*it1) < 0)){
+							zc_index = i;
 						}
-						//std::cout << "\n\nENDPACKET\n\n";
-						freq_sync_found = false;
-						reset();
-					} else {
-						freq_sync_found = true;
-						packet_start = false;
 					}
-					bit_sequence.clear();
-				}
-				if(freq_sync_found && bit_sequence.size() >= 15){
-					if(!packet_start){
 
-						packet_start = true;
-						//bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+1);
-					} else {
-						char byte = 0;
-						for(int i = 7; i >= 0; i--){
-							byte <<= 1;
-							if(bit_sequence[i]) byte |= 1;
+					// No zero crossing keep on going
+					if(zc_index == -1) keep_going = false;
+
+					// Found something!
+					else
+						transition = zc_index;
+
+				}
+				// check 20% of a bit width ahead/behind current bits out for enough slope to be considered a change
+				// enough slope to be considered a change is relative to the magnitude of the Fourier coefficient difference
+				// and slope is taken over a window width
+				// if it is a change and there is a zero crossing in the 20% lock to zero crossing
+				// if no zero crossing just center at the current distance out
+				// if its a change keep going
+				if(keep_going){
+
+					// Remove bits we just processed TODO: RING BUFFER
+					int i;
+					for(i = 0; i < transition; i++)
+						fcavg_buffer.pop_front();
+
+					int current_value = 0;
+					if(fcavg_buffer.front() < 0)
+						current_value = 1;
+
+					// Calculate how many bit lengths there are to the transition
+					float new_bits = round(((float)transition)/((float)bitwidth));
+
+					//std::cout << new_bits << " " << master_count << " ";
+
+					for(int i = 0; i < round(new_bits); i++){
+						int next_bit = 0;
+						bool fb = bit_stuffing;
+						if((current_value == 0 && last_bit == 0) || (current_value == 1 && last_bit == 1)){
+							next_bit = 1;
+							if(same_count == 4){
+								if(freq_sync_found && packet_start){
+									bit_stuffing = true;
+									same_count = 0;
+								}
+							} else same_count++;
+						} else same_count = 0;
+						last_bit = current_value;
+						if(!(bit_stuffing && next_bit == 0 && fb)){
+							bit_sequence.push_back(next_bit);
+							//std::cout << next_bit;
+						} else {
+							//std::cout << " BTST ";
 						}
-						// REMOVE
-						char pc = ' ';
-						if(std::isprint(byte)) pc = byte;
-						//std::cout << std::bitset<8>(byte) << " " << pc << std::endl;
-						//std::cout.flush();
-						// END REMOVE
-						bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+8);
-						//std::cout << std::hex << " " << (int)((unsigned char)byte) << " " << std::dec << std::bitset<8>(byte);
-						byte_sequence.push_back(byte);
+						if(fb) bit_stuffing = false;
 					}
+					//std::cout << std::endl;
+					// needs hysteresis
+
+					if(bit_sequence.size() >= 8
+					&& bit_sequence[bit_sequence.size()-8] == 0
+					&& bit_sequence[bit_sequence.size()-7] == 1
+					&& bit_sequence[bit_sequence.size()-6] == 1
+					&& bit_sequence[bit_sequence.size()-5] == 1
+					&& bit_sequence[bit_sequence.size()-4] == 1
+					&& bit_sequence[bit_sequence.size()-3] == 1
+					&& bit_sequence[bit_sequence.size()-2] == 1
+					&& bit_sequence[bit_sequence.size()-1] == 0){
+
+						if(packet_start) {
+							if(byte_sequence.size() >= 14){
+
+								packet_data pd;
+								char buffer[8];
+								for(int i = 0; i < 7; i++) buffer[i] = char((unsigned char)(byte_sequence[i])>>1);
+								pd.destination_address = std::string(buffer, 7);
+								for(int i = 7; i < 14; i++) buffer[i-7] = char((unsigned char)(byte_sequence[i])>>1);
+								pd.source_address = std::string(buffer, 7);
+
+								n = 14;
+								while(n < byte_sequence.size()){
+									if(byte_sequence[n] == 0x03 && (unsigned char)byte_sequence[n+1] == 0xF0) break;
+									for(int i = n; i < n+7; i++) buffer[i-n] = char((unsigned char)(byte_sequence[i])>>1);
+									n+=7;
+									pd.repeater_addresses.push_back(std::string(buffer, 7));
+								}
+
+								pd.byte_sequence = byte_sequence;
+
+								recived_packets.push_back(pd);
+
+								newByte = true;
+							}
+							//std::cout << "\n\nENDPACKET\n\n";
+							freq_sync_found = false;
+							reset();
+						} else {
+							freq_sync_found = true;
+							packet_start = false;
+						}
+						bit_sequence.clear();
+					}
+					if(freq_sync_found && bit_sequence.size() >= 15){
+						if(!packet_start){
+
+							packet_start = true;
+							//bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+1);
+						} else {
+							char byte = 0;
+							for(int i = 7; i >= 0; i--){
+								byte <<= 1;
+								if(bit_sequence[i]) byte |= 1;
+							}
+							// REMOVE
+							char pc = ' ';
+							if(std::isprint(byte)) pc = byte;
+							//std::cout << std::bitset<8>(byte) << " " << pc << std::endl;
+							//std::cout.flush();
+							// END REMOVE
+							bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+8);
+							//std::cout << std::hex << " " << (int)((unsigned char)byte) << " " << std::dec << std::bitset<8>(byte);
+							byte_sequence.push_back(byte);
+						}
+					}
+					//if(?){
+
+						// while decoding check for end of message frame sync and have timeout
+						//newByte = true;
+
+						//byte_sequence.push_back(?);
+						//bit_sequence.clear();
+					//}
+
+					last = current_value;
+					countlast = 1 + different_erasure_count;
+					different_erasure_count = 0;
+
 				}
-				//if(?){
 
-					// while decoding check for end of message frame sync and have timeout
-					//newByte = true;
-
-					//byte_sequence.push_back(?);
-					//bit_sequence.clear();
-				//}
-
-				last = current_value;
-				countlast = 1 + different_erasure_count;
-				different_erasure_count = 0;
-
-			} else {
-
+			} else
 				countlast++;
-				if(real_value != current_value)
-					different_erasure_count++;
-
-			}
 
 		}
 

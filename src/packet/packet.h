@@ -68,6 +68,7 @@ private:
 
 	std::list<char> input_buffer;
 	std::list<float> fcd_buffer;
+	std::list<float> fcavg_buffer;
 
 	float sample_rate;
 	float bit_rate;
