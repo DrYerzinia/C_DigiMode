@@ -9,8 +9,8 @@ bin/mixer: build/obj/mixer.o build/obj/Util.o
 bin/psk31: build/obj/main.o build/obj/psk31.o build/obj/Util.o build/obj/psk31_tdtl.o build/obj/psk31_wcpd.o build/obj/psk31_wpdd.o
 	g++ -O3 -o bin/psk31 build/obj/main.o build/obj/psk31.o build/obj/Util.o build/obj/psk31_tdtl.o build/obj/psk31_wcpd.o build/obj/psk31_wpdd.o
 
-bin/packet: build/obj/packet.o build/obj/packet_main.o
-	g++ -O3 -o bin/packet build/obj/packet.o build/obj/packet_main.o
+bin/packet:  build/obj/APRSPacket.o build/obj/packet.o build/obj/packet_main.o
+	g++ -O3 -o bin/packet build/obj/APRSPacket.o build/obj/packet.o build/obj/packet_main.o
 
 bin/filter_test: build/obj/filter_test.o build/obj/filter.o build/obj/FIR_filter.o build/obj/Util.o
 	g++ -O3 -o bin/filter_test build/obj/filter_test.o build/obj/filter.o build/obj/FIR_filter.o build/obj/Util.o
@@ -38,6 +38,9 @@ build/obj/sound_device.o: src/sound_device/sound_device.cpp
 
 build/obj/packet.o: src/packet/packet.cpp
 	g++ -O3 -o build/obj/packet.o -c src/packet/packet.cpp
+
+build/obj/APRSPacket.o: src/packet/APRSPacket.c
+	g++ -O3 -o build/obj/APRSPacket.o -c src/packet/APRSPacket.c
 
 build/obj/packet_main.o: src/packet/packet_main.cpp
 	g++ -O3 -o build/obj/packet_main.o -c src/packet/packet_main.cpp

@@ -104,11 +104,13 @@ int main(int argc, char **argv){
 			break;
 		}
 
+		fread(buffer, sizeof(char), len, stdin);
+		/*
 		int i;
 		for(i = 0; i < len; i++){
 			int byte = getc(stdin);
 			buffer[i] = (unsigned char)byte;
-		}
+		}*/
 
 		// Standard log
 		fprintf(stdout, "Sending Packet Length: %d\n", ((int)len));

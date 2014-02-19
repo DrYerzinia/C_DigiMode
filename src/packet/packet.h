@@ -8,29 +8,19 @@
 
 #include <cmath>
 
-// REMOVE
-#include <iostream>
-#include <fstream>
-//#include <iomanip>
-//#include <bitset>
-//#include <cctype>
-// END REMOVE
+//////////////////
 
+#include <stdlib.h>
+
+#include <string.h>
+
+#include "APRSPacket.h"
 
 #ifndef PI
 #define PI 3.14159265
 #endif
 
-struct packet_data {
-
-	std::vector<char> byte_sequence;
-	std::string destination_address;
-	std::string source_address;
-	std::vector<std::string> repeater_addresses;
-
-};
-
-unsigned short packet_data_CRCCCITT(packet_data &pd);
+unsigned short CRCCCITT(char_array &data);
 
 class packet {
 
@@ -47,8 +37,7 @@ public:
 	void init();
 	void reset();
 
-	bool proccess_byte(char data_point);
-	packet_data get_last_byte();
+	char_array* proccess_byte(char data_point);
 
 	void set_sample_rate(float sr);
 	void set_bit_rate(float br);
@@ -63,8 +52,6 @@ public:
 private:
 
 	void start_only();
-
-	std::fstream debugs;
 
 	std::list<char> input_buffer;
 	std::list<float> fcd_buffer;
@@ -106,7 +93,5 @@ private:
 	bool packet_start;
 
 	std::vector<char> byte_sequence;
-
-	std::vector<packet_data> recived_packets;
 
 };

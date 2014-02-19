@@ -49,13 +49,13 @@ static unsigned short crc_table [256] = {
 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
-unsigned short packet_data_CRCCCITT(packet_data &pd){
+unsigned short CRCCCITT(char_array &data){
 
 	unsigned short crc = 0xFFFF;
 	unsigned short temp;
 	
-	for(int i = 0; i < pd.byte_sequence.size()-2; ++i) {
-		unsigned char dat = pd.byte_sequence[i];
+	for(int i = 0; i < data.len-2; ++i) {
+		unsigned char dat = data.data[i];
 		unsigned char rv = 0x00;
 		for(int j = 0; j < 8; j++, dat >>= 1)
 			rv = (rv << 1) | (dat & 0x01);
@@ -208,14 +208,14 @@ void packet::reset(){
 
 }
 
-bool packet::proccess_byte(char data_point){
+char_array* packet::proccess_byte(char data_point){
 
 	//if(sample_counter > sample_rate*2){
 	//	reset();
 	//	std::cout << std::endl;
 	//}
 
-	bool newByte = false;
+	char_array* new_data = NULL;
 
 	input_buffer.push_back(data_point);
 	master_count++;
@@ -376,26 +376,14 @@ bool packet::proccess_byte(char data_point){
 						if(packet_start) {
 							if(byte_sequence.size() >= 14){
 
-								packet_data pd;
-								char buffer[8];
-								for(int i = 0; i < 7; i++) buffer[i] = char((unsigned char)(byte_sequence[i])>>1);
-								pd.destination_address = std::string(buffer, 7);
-								for(int i = 7; i < 14; i++) buffer[i-7] = char((unsigned char)(byte_sequence[i])>>1);
-								pd.source_address = std::string(buffer, 7);
+								unsigned short len = byte_sequence.size();
+								char *data = byte_sequence.data();
 
-								n = 14;
-								while(n < byte_sequence.size()){
-									if(byte_sequence[n] == 0x03 && (unsigned char)byte_sequence[n+1] == 0xF0) break;
-									for(int i = n; i < n+7; i++) buffer[i-n] = char((unsigned char)(byte_sequence[i])>>1);
-									n+=7;
-									pd.repeater_addresses.push_back(std::string(buffer, 7));
-								}
+								new_data = (char_array*) malloc(sizeof(char_array));
+								new_data->len = len;
+								new_data->data = (char*) malloc(sizeof(char)*len);
+								memcpy(new_data->data, data, len);
 
-								pd.byte_sequence = byte_sequence;
-
-								recived_packets.push_back(pd);
-
-								newByte = true;
 							}
 							//std::cout << "\n\nENDPACKET\n\n";
 							freq_sync_found = false;
@@ -452,21 +440,8 @@ bool packet::proccess_byte(char data_point){
 
 	sample_counter++;
 
-	return newByte;
+	return new_data;
 
-}
-
-packet_data packet::get_last_byte(){
-	//std::vector<char> ret;
-	//if(last_byte_sequence.size() == 0){
-	//	ret = byte_sequence;
-	//	byte_sequence.clear();
-	//} else {
-	//	ret = last_byte_sequence;
-	//	last_byte_sequence.clear();
-	//}
-	//return ret;
-	return recived_packets[recived_packets.size()-1];
 }
 
 void packet::set_sample_rate(float sr){
