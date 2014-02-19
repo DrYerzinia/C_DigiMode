@@ -1,15 +1,6 @@
-// packet_main.cpp
+// packet_main.c
 
-#include <stdlib.h>
-
-#include <stddef.h>
-
-#include <ctype.h>
-#include <stdio.h>
-
-#include <argp.h>
-
-#include "packet.h"
+#include "packet_main.h"
 
 // Command Line Parameters
 const char *program_version = "packet 0.7";
@@ -78,49 +69,52 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 /**
  * Write the packet length and then the packet to stdout
  */
-void print_raw_packet(APRSPacket &packet){
+void print_raw_packet(APRSPacket *packet){
 
-	unsigned short length = packet.data.len;
+	unsigned short length = packet->data.len;
 
 	fputc((length>>8) & 0xFF, stdout);
 	fputc( length     & 0xFF, stdout);
 
-	fwrite(packet.data.data, sizeof(char), packet.data.len, stdout);
+	fwrite(packet->data.data, sizeof(char), packet->data.len, stdout);
 	fflush(stdout);
 
-	fprintf(stderr, "packet: Packet Length: %d\n", packet.data.len);
+	fprintf(stderr, "packet: Packet Length: %d\n", packet->data.len);
 
 }
 
-void print_detailed_packet(APRSPacket &packet, unsigned short calculated_checksum, unsigned short checksum){
+void print_detailed_packet(APRSPacket *packet, unsigned short calculated_checksum, unsigned short checksum){
+
+	int i;
 
 	printf("Packet Received\n");
 
 	if(calculated_checksum != checksum)
 		printf("Checksum Error!\nCaluclated checksum is: %04X\n", calculated_checksum);
 
-	printf("Size: %d\n", packet.data.len);
-	printf("Destination Address: %s\n", packet.destination_address);
-	printf("Source Address: %s\n", packet.source_address);
-	for(int i = 0; i < packet.repeaters; i++)
-		printf("Repeater-%d: %s\n", i+1, packet.repeater_addresses[i]);
+	printf("Size: %d\n", packet->data.len);
+	printf("Destination Address: %s\n", packet->destination_address);
+	printf("Source Address: %s\n", packet->source_address);
+	for(i = 0; i < packet->repeaters; i++)
+		printf("Repeater-%d: %s\n", i+1, packet->repeater_addresses[i]);
 
 	printf("\nData: \n");
 
-	int i = 0;
-	while(i < packet.data.len){
-		for(int j = 0; j < 20; j++){
-			if(i < packet.data.len){
-				if(isprint(packet.data.data[i])) putchar(packet.data.data[i]);
+	i = 0;
+	while(i < packet->data.len){
+		int j;
+		for(j = 0; j < 20; j++){
+			if(i < packet->data.len){
+				if(isprint(packet->data.data[i])) putchar(packet->data.data[i]);
 				else printf(".");
 			} else putchar(' ');
 			i++;
 		}
 		i -= 20;
 		printf("  |  ");
-		for(int j = 0; j < 20; j++){
-			if(i < packet.data.len){
-				unsigned char val = packet.data.data[i];
+		for(j = 0; j < 20; j++){
+			if(i < packet->data.len){
+				unsigned char val = packet->data.data[i];
 				printf(" %02X", (int)val);
 				i++;
 			}
@@ -133,13 +127,13 @@ void print_detailed_packet(APRSPacket &packet, unsigned short calculated_checksu
 
 }
 
-void print_packet(APRSPacket &packet, bool show_errors_bool, bool raw){
+void print_packet(APRSPacket *packet, bool show_errors_bool, bool raw){
 
-	unsigned short fsc = CRCCCITT(packet.data);
+	unsigned short fsc = CRCCCITT(&packet->data);
 
-	unsigned short fsc2 = packet.data.data[packet.data.len-2];
+	unsigned short fsc2 = packet->data.data[packet->data.len-2];
 	fsc2 <<= 8;
-	fsc2 |= packet.data.data[packet.data.len-1]&0xFF;
+	fsc2 |= packet->data.data[packet->data.len-1]&0xFF;
 
 	if(fsc != fsc2 && !show_errors_bool) return;
 
@@ -165,8 +159,6 @@ int main(int argc, char **argv){
 
 	argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-	packet pac(arguments.sample_rate, arguments.bit_rate, arguments.offset, 0, arguments.noise_floor);
-
 	FILE *input_file = NULL;
 
 	if(arguments.filename == NULL)
@@ -178,24 +170,31 @@ int main(int argc, char **argv){
 	// Read and process data from file
 	if(input_file != NULL){
 
+		AFSK_Demodulator demod;
+		AFSK_Demodulator_init(&demod, arguments.sample_rate, arguments.bit_rate, arguments.offset, 0, arguments.noise_floor);
+
 		char byte;
 		while(!feof(input_file)){
 
 			byte = getc(input_file);
 
-			char_array *data = pac.proccess_byte(byte);
+			char_array *data = proccess_byte(&demod, byte);
 
 			if(data){
 
 				APRSPacket new_packet;
 				APRSPacket_from_data(&new_packet, data);
-				print_packet(new_packet, arguments.show_errors, arguments.raw);
+				free(data);
+				print_packet(&new_packet, arguments.show_errors, arguments.raw);
+				APRSPacket_destory(&new_packet);
 
 			}
 
 		}
 
 		fclose(input_file);
+
+		AFSK_Demodulator_destory(&demod);
 
 	}
 

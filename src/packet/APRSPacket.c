@@ -31,3 +31,14 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 	}
 
 }
+
+void APRSPacket_destory(APRSPacket *packet){
+
+	int i;
+	for(i = 0; i < packet->repeaters; i++)
+		free(packet->repeater_addresses[i]);
+	free(packet->repeater_addresses);
+
+	free(packet->data.data);
+
+}

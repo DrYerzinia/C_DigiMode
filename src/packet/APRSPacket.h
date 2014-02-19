@@ -19,4 +19,6 @@ typedef struct {
 
 void APRSPacket_from_data(APRSPacket *packet, char_array *data);
 
+void APRSPacket_destory(APRSPacket *packet);
+
 #endif
