@@ -12,7 +12,7 @@ bin/psk31: build/obj/main.o build/obj/psk31.o build/obj/Util.o build/obj/psk31_t
 # Packet
 
 bin/packet: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/trig_table.o
-	gcc -O3 -lm -o bin/packet build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/trig_table.o
+	gcc -O3 -o bin/packet build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/trig_table.o
 
 build/obj/packet_main.o: src/packet/packet_main.c
 	gcc -O3 -o build/obj/packet_main.o -c src/packet/packet_main.c

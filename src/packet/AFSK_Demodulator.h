@@ -3,8 +3,6 @@
 #ifndef AFSK_DEMODULATOR_H
 #define AFSK_DEMODULATOR_H
 
-#include <math.h>
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>

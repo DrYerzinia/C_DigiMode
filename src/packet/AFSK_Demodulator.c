@@ -56,7 +56,7 @@ void reset(AFSK_Demodulator *self){
 	self->max = 0;
 	self->countlast = 0;
 
-	self->window = round(self->sample_rate/self->bit_rate);
+	self->window = (int)(self->sample_rate/self->bit_rate+0.5);
 
 	self->bitwidth = self->sample_rate/self->bit_rate;
 
@@ -203,9 +203,9 @@ char_array* proccess_byte(AFSK_Demodulator *self, char data_point){
 						current_value = 1;
 
 					// Calculate how many bit lengths there are to the transition
-					float new_bits = round(((float)transition)/((float)self->bitwidth));
+					float new_bits = (int)((((float)transition)/((float)self->bitwidth))+0.5);
 
-					for(i = 0; i < round(new_bits); i++){
+					for(i = 0; i < (int)(new_bits+0.5); i++){
 						int next_bit = 0;
 						bool fb = self->bit_stuffing;
 						if((current_value == 0 && self->last_bit == 0) || (current_value == 1 && self->last_bit == 1)){
