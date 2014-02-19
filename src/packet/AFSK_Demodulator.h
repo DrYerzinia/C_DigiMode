@@ -11,16 +11,14 @@
 
 #include "APRSPacket.h"
 
-#include "char_array.h"
+#include "../math/trig_table.h"
+
+#include "../container/char_array.h"
 
 #include "char_array_expandable.h"
 
 #include "char_ring_buffer.h"
 #include "float_ring_buffer.h"
-
-#ifndef PI
-#define PI 3.14159265
-#endif
 
 unsigned short CRCCCITT(char_array *data);
 

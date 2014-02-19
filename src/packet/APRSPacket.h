@@ -1,9 +1,11 @@
 #ifndef APRSPACKET_H
 #define APRSPACKET_H
 
-#include "char_array.h"
-
 #include <stdlib.h>
+
+#include "../crc/crcccitt.h"
+
+#include "../container/char_array.h"
 
 typedef struct {
 
@@ -18,6 +20,8 @@ typedef struct {
 } APRSPacket;
 
 void APRSPacket_from_data(APRSPacket *packet, char_array *data);
+
+unsigned short APRSPacket_crc(APRSPacket *packet);
 
 void APRSPacket_destory(APRSPacket *packet);
 
