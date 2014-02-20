@@ -23,6 +23,8 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 
 		if(data->data[n] == 0x03 && (unsigned char)data->data[n+1] == 0xF0) break;
 
+		if(packet->repeaters > 7) break;
+
 		if(n+7 >= data->len) break;
 
 		char* new_address = (char*) malloc(sizeof(char)*8);
