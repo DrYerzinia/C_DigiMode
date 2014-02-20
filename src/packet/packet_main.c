@@ -178,7 +178,7 @@ int main(int argc, char **argv){
 
 			byte = getc(input_file);
 
-			char_array *data = proccess_byte(&demod, byte);
+			char_array *data = AFSK_Demodulator_proccess_byte(&demod, byte);
 
 			if(data){
 

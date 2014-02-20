@@ -2,56 +2,14 @@
 
 #include "AFSK_Demodulator.h"
 
-void start_only(AFSK_Demodulator *self){
+void AFSK_Demodulator_start_only(AFSK_Demodulator *self){
 
 	self->fcMax = 0;
 	self->fcMin = 0;
 
 }
 
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf){
-
-	self->sample_rate = sr;
-	self->bit_rate = br;
-
-	self->offset = off;
-	self->hysteresis = hys;
-	self->noise_floor = nf;
-
-	self->frequency_0 = 1200;
-	self->frequency_1 = 2200;
-
-	self->input_buffer.size = 0;
-	self->fcd_buffer.size   = 0;
-	self->fcavg_buffer.size = 0;
-
-	char_ring_buffer_init(&self->bit_sequence, 30);
-
-	char_array_expandable_init(&self->byte_sequence, 330);
-
-	start_only(self);
-	reset(self);
-
-}
-
-void AFSK_Demodulator_destory(AFSK_Demodulator *self){
-
-	if(self->input_buffer.size != 0)
-		char_ring_buffer_destory(&self->input_buffer);
-	if(self->fcd_buffer.size != 0)
-		float_ring_buffer_destory(&self->fcd_buffer);
-	if(self->fcavg_buffer.size != 0)
-		float_ring_buffer_destory(&self->fcavg_buffer);
-
-	if(self->bit_sequence.size != 0)
-		char_ring_buffer_destory(&self->bit_sequence);
-
-	if(self->byte_sequence.capacity != 0)
-		char_array_expandable_destroy(&self->byte_sequence);
-
-}
-
-void reset(AFSK_Demodulator *self){
+void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 	self->max = 0;
 	self->countlast = 0;
@@ -88,7 +46,49 @@ void reset(AFSK_Demodulator *self){
 
 }
 
-char_array* proccess_byte(AFSK_Demodulator *self, char data_point){
+void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf){
+
+	self->sample_rate = sr;
+	self->bit_rate = br;
+
+	self->offset = off;
+	self->hysteresis = hys;
+	self->noise_floor = nf;
+
+	self->frequency_0 = 1200;
+	self->frequency_1 = 2200;
+
+	self->input_buffer.size = 0;
+	self->fcd_buffer.size   = 0;
+	self->fcavg_buffer.size = 0;
+
+	char_ring_buffer_init(&self->bit_sequence, 30);
+
+	char_array_expandable_init(&self->byte_sequence, 330);
+
+	AFSK_Demodulator_start_only(self);
+	AFSK_Demodulator_reset(self);
+
+}
+
+void AFSK_Demodulator_destory(AFSK_Demodulator *self){
+
+	if(self->input_buffer.size != 0)
+		char_ring_buffer_destory(&self->input_buffer);
+	if(self->fcd_buffer.size != 0)
+		float_ring_buffer_destory(&self->fcd_buffer);
+	if(self->fcavg_buffer.size != 0)
+		float_ring_buffer_destory(&self->fcavg_buffer);
+
+	if(self->bit_sequence.size != 0)
+		char_ring_buffer_destory(&self->bit_sequence);
+
+	if(self->byte_sequence.capacity != 0)
+		char_array_expandable_destroy(&self->byte_sequence);
+
+}
+
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_point){
 
 	char_array* new_data = NULL;
 
@@ -253,7 +253,7 @@ char_array* proccess_byte(AFSK_Demodulator *self, char data_point){
 
 							}
 							self->freq_sync_found = false;
-							reset(self);
+							AFSK_Demodulator_reset(self);
 						} else {
 							self->freq_sync_found = true;
 							self->packet_start = false;
@@ -308,31 +308,31 @@ char_array* proccess_byte(AFSK_Demodulator *self, char data_point){
 
 }
 
-void set_sample_rate(AFSK_Demodulator *self, float sr){
+void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr){
 	self->sample_rate = sr;
 }
 
-void set_bit_rate(AFSK_Demodulator *self, float br){
+void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br){
 	self->bit_rate = br;
 }
 
-void set_frequency_0(AFSK_Demodulator *self, float f0){
+void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, float f0){
 	self->frequency_0 = f0;
 }
 
-void set_frequency_1(AFSK_Demodulator *self, float f1){
+void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1){
 	self->frequency_1 = f1;
 }
 
-void set_offset(AFSK_Demodulator *self, float off){
+void AFSK_Demodulator_set_offset(AFSK_Demodulator *self, float off){
 	self->offset = off;
 }
 
-void set_hysteresis(AFSK_Demodulator *self, float hys){
+void AFSK_Demodulator_set_hysteresis(AFSK_Demodulator *self, float hys){
 	self->hysteresis = hys;
 }
 
-void set_noise_floor(AFSK_Demodulator *self, float nf){
+void AFSK_Demodulator_set_noise_floor(AFSK_Demodulator *self, float nf){
 	self->noise_floor = nf;
 }
 

@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <ctype.h>
+
 #include "APRSPacket.h"
 
 #include "../math/trig_table.h"
@@ -68,20 +70,18 @@ typedef struct {
 void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf);
 void AFSK_Demodulator_destroy(AFSK_Demodulator *self);
 
-void reset(AFSK_Demodulator *self);
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_point);
 
-char_array* proccess_byte(AFSK_Demodulator *self, char data_point);
+void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr);
+void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br);
 
-void set_sample_rate(AFSK_Demodulator *self, float sr);
-void set_bit_rate(AFSK_Demodulator *self, float br);
+void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, float f0);
+void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1);
 
-void set_frequency_0(AFSK_Demodulator *self, float f0);
-void set_frequency_1(AFSK_Demodulator *self, float f1);
+void AFSK_Demodulator_set_offset(AFSK_Demodulator *self, float off);
+void AFSK_Demodulator_set_hysteresis(AFSK_Demodulator *self, float hys);
+void AFSK_Demodulator_set_noise_floor(AFSK_Demodulator *self, float nf);
 
-void set_offset(AFSK_Demodulator *self, float off);
-void set_hysteresis(AFSK_Demodulator *self, float hys);
-void set_noise_floor(AFSK_Demodulator *self, float nf);
-
-void start_only(AFSK_Demodulator *self);
+void AFSK_Demodulator_start_only(AFSK_Demodulator *self);
 
 #endif
