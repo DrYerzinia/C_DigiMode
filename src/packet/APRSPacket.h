@@ -12,11 +12,11 @@ typedef struct {
 
 	char_array		data;
 
-	char			destination_address[8];
-	char			source_address[8];
+	signed char		destination_address[8];
+	signed char		source_address[8];
 
 	unsigned char	repeaters;
-	char			**repeater_addresses;
+	signed char		**repeater_addresses;
 
 } APRSPacket;
 

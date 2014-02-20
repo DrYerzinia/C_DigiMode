@@ -7,7 +7,7 @@
 
 typedef struct {
 
-	char *data;
+	signed char *data;
 
 	unsigned short read_position;
 	unsigned short write_position;
@@ -18,7 +18,7 @@ typedef struct {
 
 void char_ring_buffer_init(char_ring_buffer *self, unsigned short capacity);
 
-void char_ring_buffer_put(char_ring_buffer *self, char c);
+void char_ring_buffer_put(char_ring_buffer *self, signed char c);
 char char_ring_buffer_get(char_ring_buffer *self, unsigned short index);
 void char_ring_buffer_pop(char_ring_buffer *self);
 void char_ring_buffer_remove(char_ring_buffer *self, unsigned short count);

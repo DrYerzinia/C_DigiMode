@@ -3,12 +3,12 @@
 #include "packet_main.h"
 
 // Command Line Parameters
-const char *program_version = "packet 0.7";
-const char *program_bug_address = "<dryerzinia@gmail.com>";
+const signed char *program_version = "packet 0.7";
+const signed char *program_bug_address = "<dryerzinia@gmail.com>";
 
-static char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
+static signed char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
 
-static char args_doc[] = "";
+static signed char args_doc[] = "";
 
 static struct argp_option options[] = {
 		{"filename", 'i', "FILE", OPTION_ARG_OPTIONAL, "File to read samples from (stdin)"},
@@ -22,7 +22,7 @@ static struct argp_option options[] = {
 };
 
 struct arguments {
-	char *filename;
+	signed char *filename;
 	int sample_rate;
 	int bit_rate;
 	bool show_errors;

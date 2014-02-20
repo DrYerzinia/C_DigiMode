@@ -5,14 +5,14 @@
 void char_ring_buffer_init(char_ring_buffer *self, unsigned short capacity){
 
 	self->size = capacity;
-	self->data = (char*) malloc(sizeof(char) * capacity);
+	self->data = (signed char*) malloc(sizeof(char) * capacity);
 
 	self->read_position = 0;
 	self->write_position = 0;
 
 }
 
-void char_ring_buffer_put(char_ring_buffer *self, char c){
+void char_ring_buffer_put(char_ring_buffer *self, signed char c){
 
 	self->data[self->write_position++] = c;
 

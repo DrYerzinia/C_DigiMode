@@ -7,11 +7,11 @@ void char_array_expandable_init(char_array_expandable *self, unsigned short capa
 	self->length = 0;
 	self->capacity = capacity;
 
-	self->data = (char*) malloc(sizeof(char)*capacity);
+	self->data = (signed char*) malloc(sizeof(char)*capacity);
 
 }
 
-void char_array_expandable_put(char_array_expandable *self, char c){
+void char_array_expandable_put(char_array_expandable *self, signed char c){
 
 	if(self->length == self->capacity){
 
@@ -19,7 +19,7 @@ void char_array_expandable_put(char_array_expandable *self, char c){
 
 		self->capacity += self->capacity/5;
 
-		char *new_data = (char*) malloc(sizeof(char) * self->capacity);
+		char *new_data = (signed char*) malloc(sizeof(char) * self->capacity);
 		char *old_data = self->data;
 
 		unsigned char i;

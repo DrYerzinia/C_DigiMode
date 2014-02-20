@@ -88,7 +88,7 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self){
 
 }
 
-char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_point){
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char data_point){
 
 	char_array* new_data = NULL;
 
@@ -244,10 +244,10 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_poi
 							unsigned short len = char_array_expandable_size(&self->byte_sequence);
 							if(len >= 14){
 
-								char *data = self->byte_sequence.data;
+								signed char *data = self->byte_sequence.data;
 								new_data = (char_array*) malloc(sizeof(char_array));
 								new_data->len = len;
-								new_data->data = (char*) malloc(sizeof(char)*len);
+								new_data->data = (signed char*) malloc(sizeof(char)*len);
 								memcpy(new_data->data, data, len);
 
 							}
@@ -265,13 +265,13 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_poi
 							self->packet_start = true;
 							//bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+1);
 						} else {
-							char byte = 0;
+							signed char byte = 0;
 							for(i = 7; i >= 0; i--){
 								byte <<= 1;
 								if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
 							}
 							// REMOVE
-							char pc = ' ';
+							signed char pc = ' ';
 							if(isprint(byte)) pc = byte;
 							//std::cout << std::bitset<8>(byte) << " " << pc << std::endl;
 							//std::cout.flush();

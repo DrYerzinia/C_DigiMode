@@ -70,7 +70,7 @@ typedef struct {
 void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf);
 void AFSK_Demodulator_destroy(AFSK_Demodulator *self);
 
-char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_point);
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char data_point);
 
 void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr);
 void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br);
