@@ -173,7 +173,7 @@ int main(int argc, char **argv){
 		AFSK_Demodulator demod;
 		AFSK_Demodulator_init(&demod, arguments.sample_rate, arguments.bit_rate, arguments.offset, 0, arguments.noise_floor);
 
-		char byte;
+		signed char byte;
 		while(!feof(input_file)){
 
 			byte = getc(input_file);

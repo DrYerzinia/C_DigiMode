@@ -27,7 +27,7 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 
 		if(n+7 >= data->len) break;
 
-		char* new_address = (signed char*) malloc(sizeof(char)*8);
+		signed char* new_address = (signed char*) malloc(sizeof(char)*8);
 		for(i = n; i < n+7; i++) new_address[i-n] = (signed char)((unsigned char)(data->data[i])>>1);
 		new_address[7] = '\0';
 		n+=7;

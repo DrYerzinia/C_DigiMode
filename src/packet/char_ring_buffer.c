@@ -21,7 +21,7 @@ void char_ring_buffer_put(char_ring_buffer *self, signed char c){
 
 }
 
-char char_ring_buffer_get(char_ring_buffer *self, unsigned short index){
+signed char char_ring_buffer_get(char_ring_buffer *self, unsigned short index){
 
 	unsigned short position = self->read_position + index;
 

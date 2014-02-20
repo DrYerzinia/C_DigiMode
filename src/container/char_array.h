@@ -4,7 +4,7 @@
 typedef struct {
 
 	unsigned short len;
-	char *data;
+	signed char *data;
 
 } char_array;
 

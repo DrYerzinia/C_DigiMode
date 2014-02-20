@@ -19,8 +19,8 @@ void char_array_expandable_put(char_array_expandable *self, signed char c){
 
 		self->capacity += self->capacity/5;
 
-		char *new_data = (signed char*) malloc(sizeof(char) * self->capacity);
-		char *old_data = self->data;
+		signed char *new_data = (signed char*) malloc(sizeof(char) * self->capacity);
+		signed char *old_data = self->data;
 
 		unsigned char i;
 		for(i = 0; i < old_capacity; i++)
