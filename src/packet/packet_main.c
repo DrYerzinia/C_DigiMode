@@ -12,12 +12,12 @@ static char args_doc[] = "";
 
 static struct argp_option options[] = {
 		{"filename", 'i', "FILE", OPTION_ARG_OPTIONAL, "File to read samples from (stdin)"},
-		{"sample-rate", 's', 0, OPTION_ARG_OPTIONAL, "Sample Rate of input (44100)"},
-		{"bit-rate", 'b', 0, OPTION_ARG_OPTIONAL, "Bit Rate of packets (1200)"},
+		{"sample-rate", 's', "HZ", OPTION_ARG_OPTIONAL, "Sample Rate of input (44100)"},
+		{"bit-rate", 'b', "BPS", OPTION_ARG_OPTIONAL, "Bit Rate of packets (1200)"},
 		{"show-errors", 'e', 0, OPTION_ARG_OPTIONAL, "Show packets with bad checksums"},
 		{"raw", 'r', 0, OPTION_ARG_OPTIONAL, "Print packets as raw data with unsigned short length before them"},
 		{"noise-floor", 'n', 0, OPTION_ARG_OPTIONAL, "Noise floor (Not properly implemented yet)"},
-		{"offset", 'o', 0, OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fouriour Coefficent difference by (0.0925)"},
+		{"offset", 'o', "FLOAT", OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fouriour Coefficent difference by (0.0925)"},
 		{0}
 };
 
