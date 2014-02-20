@@ -186,7 +186,7 @@ int main(int argc, char **argv){
 				APRSPacket_from_data(&new_packet, data);
 				free(data);
 				print_packet(&new_packet, arguments.show_errors, arguments.raw);
-				APRSPacket_destory(&new_packet);
+				APRSPacket_destroy(&new_packet);
 
 			}
 
@@ -194,7 +194,7 @@ int main(int argc, char **argv){
 
 		fclose(input_file);
 
-		AFSK_Demodulator_destory(&demod);
+		AFSK_Demodulator_destroy(&demod);
 
 	}
 

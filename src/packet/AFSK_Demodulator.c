@@ -71,7 +71,7 @@ void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off
 
 }
 
-void AFSK_Demodulator_destory(AFSK_Demodulator *self){
+void AFSK_Demodulator_destroy(AFSK_Demodulator *self){
 
 	if(self->input_buffer.size != 0)
 		char_ring_buffer_destory(&self->input_buffer);
@@ -245,7 +245,6 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, char data_poi
 							if(len >= 14){
 
 								char *data = self->byte_sequence.data;
-
 								new_data = (char_array*) malloc(sizeof(char_array));
 								new_data->len = len;
 								new_data->data = (char*) malloc(sizeof(char)*len);
