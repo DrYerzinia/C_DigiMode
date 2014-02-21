@@ -171,12 +171,14 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 					// +/- half a bit
 					avail = float_ring_buffer_avail(&self->fcavg_buffer);
 					for(i = current_bits-self->bitwidth-(self->bitwidth/2); i < avail && i < current_bits-self->bitwidth+(self->bitwidth/2); i++){
+
 						// If the bits are one negative one positive IE zero-crossing
 						float a = float_ring_buffer_get(&self->fcavg_buffer, i-1);
 						float b = float_ring_buffer_get(&self->fcavg_buffer,   i);
 						if( (a >= 0 && b < 0) || (b >= 0 && a < 0)){
 							zc_index = i;
 						}
+
 					}
 
 					// No zero crossing keep on going
@@ -206,28 +208,32 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 					float new_bits = (int)((((float)transition)/((float)self->bitwidth))+0.5);
 
 					for(i = 0; i < (int)(new_bits+0.5); i++){
+
 						int next_bit = 0;
+
 						bool fb = self->bit_stuffing;
 						if((current_value == 0 && self->last_bit == 0) || (current_value == 1 && self->last_bit == 1)){
+
 							next_bit = 1;
 							if(self->same_count == 4){
+
 								if(self->freq_sync_found && self->packet_start){
 									self->bit_stuffing = true;
 									self->same_count = 0;
 								}
+
 							} else self->same_count++;
+
 						} else self->same_count = 0;
+
 						self->last_bit = current_value;
-						if(!(self->bit_stuffing && next_bit == 0 && fb)){
+
+						if(!(self->bit_stuffing && next_bit == 0 && fb))
 							char_ring_buffer_put(&self->bit_sequence, next_bit);
-							//std::cout << next_bit;
-						} else {
-							//std::cout << " BTST ";
-						}
+
 						if(fb) self->bit_stuffing = false;
+
 					}
-					//std::cout << std::endl;
-					// needs hysteresis
 
 					avail = char_ring_buffer_avail(&self->bit_sequence);
 					if(avail >= 8
@@ -241,7 +247,8 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 					&& char_ring_buffer_get(&self->bit_sequence, avail-1) == 0){
 
 						if(self->packet_start) {
-							unsigned short len = char_array_expandable_size(&self->byte_sequence);
+
+							uint16_t len = char_array_expandable_size(&self->byte_sequence);
 							if(len >= 14){
 
 								signed char *data = self->byte_sequence.data;
@@ -251,44 +258,41 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 								memcpy(new_data->data, data, len);
 
 							}
+
 							self->freq_sync_found = false;
 							AFSK_Demodulator_reset(self);
+
 						} else {
+
 							self->freq_sync_found = true;
 							self->packet_start = false;
+
 						}
+
 						char_ring_buffer_clear(&self->bit_sequence);
+
 					}
+
 					if(self->freq_sync_found && avail >= 15){
+
 						if(!self->packet_start){
 
 							self->packet_start = true;
-							//bit_sequence.erase(bit_sequence.begin(),bit_sequence.begin()+1);
+
 						} else {
+
 							signed char byte = 0;
 							for(i = 7; i >= 0; i--){
 								byte <<= 1;
 								if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
 							}
-							// REMOVE
-							signed char pc = ' ';
-							if(isprint(byte)) pc = byte;
-							//std::cout << std::bitset<8>(byte) << " " << pc << std::endl;
-							//std::cout.flush();
-							// END REMOVE
+
 							char_ring_buffer_remove(&self->bit_sequence, 8);
-							//std::cout << std::hex << " " << (int)((unsigned char)byte) << " " << std::dec << std::bitset<8>(byte);
 							char_array_expandable_put(&self->byte_sequence, byte);
+
 						}
+
 					}
-					//if(?){
-
-						// while decoding check for end of message frame sync and have timeout
-						//newByte = true;
-
-						//byte_sequence.push_back(?);
-						//bit_sequence.clear();
-					//}
 
 					self->last = current_value;
 
