@@ -46,7 +46,7 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 }
 
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf){
+void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf, int frequency_0, int frequency_1){
 
 	self->sample_rate = sr;
 	self->bit_rate = br;
@@ -55,8 +55,8 @@ void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off
 	self->hysteresis = hys;
 	self->noise_floor = nf;
 
-	self->frequency_0 = 1200;
-	self->frequency_1 = 2200;
+	self->frequency_0 = frequency_0;
+	self->frequency_1 = frequency_1;
 
 	self->input_buffer.size = 0;
 	self->fcd_buffer.size   = 0;

@@ -14,6 +14,8 @@ static struct argp_option options[] = {
 		{"filename", 'i', "FILE", OPTION_ARG_OPTIONAL, "File to read samples from (stdin)"},
 		{"sample-rate", 's', "HZ", OPTION_ARG_OPTIONAL, "Sample Rate of input (44100)"},
 		{"bit-rate", 'b', "BPS", OPTION_ARG_OPTIONAL, "Bit Rate of packets (1200)"},
+		{"frequency0", -1, "HZ", OPTION_ARG_OPTIONAL, "1st AFSK Frequency (1200 Hz)"},
+		{"frequency1", -2, "HZ", OPTION_ARG_OPTIONAL, "2st AFSK Frequency (2200 Hz)"},
 		{"show-errors", 'e', 0, OPTION_ARG_OPTIONAL, "Show packets with bad checksums"},
 		{"raw", 'r', 0, OPTION_ARG_OPTIONAL, "Print packets as raw data with unsigned short length before them"},
 		{"noise-floor", 'n', 0, OPTION_ARG_OPTIONAL, "Noise floor (Not properly implemented yet)"},
@@ -22,13 +24,21 @@ static struct argp_option options[] = {
 };
 
 struct arguments {
+
 	signed char *filename;
+
+	int frequency_0;
+	int frequency_1;
+
 	int sample_rate;
 	int bit_rate;
+
 	bool show_errors;
 	bool raw;
 	int noise_floor;
+
 	float offset;
+
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state){
@@ -57,6 +67,12 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state){
 			break;
 		case 'o':
 			arguments->offset = atof(arg);
+			break;
+		case -1:
+			arguments->frequency_0 = atoi(arg);
+			break;
+		case -2:
+			arguments->frequency_1 = atoi(arg);
 			break;
 		default:
 			return ARGP_ERR_UNKNOWN;
@@ -150,10 +166,16 @@ int main(int argc, char **argv){
 	struct arguments arguments;
 
 	arguments.filename = NULL;
+
 	arguments.sample_rate = 44100;
 	arguments.bit_rate = 1200;
+
+	arguments.frequency_0 = 1200;
+	arguments.frequency_1 = 2200;
+
 	arguments.show_errors = false;
 	arguments.raw = false;
+
 	arguments.offset = 0.0925;
 	arguments.noise_floor = 0;
 
@@ -171,7 +193,16 @@ int main(int argc, char **argv){
 	if(input_file != NULL){
 
 		AFSK_Demodulator demod;
-		AFSK_Demodulator_init(&demod, arguments.sample_rate, arguments.bit_rate, arguments.offset, 0, arguments.noise_floor);
+		AFSK_Demodulator_init(
+			&demod,
+			arguments.sample_rate,
+			arguments.bit_rate,
+			arguments.offset,
+			0,
+			arguments.noise_floor,
+			arguments.frequency_0,
+			arguments.frequency_1
+		);
 
 		signed char byte;
 		while(!feof(input_file)){
