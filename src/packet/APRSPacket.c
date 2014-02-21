@@ -21,7 +21,8 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 
 		if(n+1 >= data->len) break;
 
-		if(data->data[n] == 0x03 && (unsigned char)data->data[n+1] == 0xF0) break;
+		// Check for 0 bit set on end of last address character indicating that there are no more repeater addresses
+		if(data->data[n-1] & 0x01 != 0) break;
 
 		if(packet->repeaters > 7) break;
 
