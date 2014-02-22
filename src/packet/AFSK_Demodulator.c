@@ -2,23 +2,14 @@
 
 #include "AFSK_Demodulator.h"
 
-void AFSK_Demodulator_start_only(AFSK_Demodulator *self){
-
-	self->fcMax = 0;
-	self->fcMin = 0;
-
-}
-
 void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
-	self->max = 0;
-	self->countlast = 0;
+	self->count_last = 0;
 
 	self->window = (int)(self->sample_rate/self->bit_rate+0.5);
 
 	self->bitwidth = self->sample_rate/self->bit_rate;
 
-	self->last = -1;
 	self->last_bit = 0;
 
 	self->sample_counter = 0;
@@ -37,22 +28,17 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 		float_ring_buffer_destory(&self->fcd_buffer);
 	float_ring_buffer_init(&self->fcd_buffer, self->window+2);
 
-	if(self->fcavg_buffer.size != 0)
-		float_ring_buffer_destory(&self->fcavg_buffer);
-	float_ring_buffer_init(&self->fcavg_buffer, self->bitwidth*10);
-
 	char_array_expandable_clear(&self->byte_sequence);
 	char_ring_buffer_clear(&self->bit_sequence);
 
 }
 
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float hys, float nf, int frequency_0, int frequency_1){
+void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float nf, int frequency_0, int frequency_1){
 
 	self->sample_rate = sr;
 	self->bit_rate = br;
 
 	self->offset = off;
-	self->hysteresis = hys;
 	self->noise_floor = nf;
 
 	self->frequency_0 = frequency_0;
@@ -60,13 +46,14 @@ void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off
 
 	self->input_buffer.size = 0;
 	self->fcd_buffer.size   = 0;
-	self->fcavg_buffer.size = 0;
+
+	self->fcMax = 0;
+	self->fcMin = 0;
 
 	char_ring_buffer_init(&self->bit_sequence, 30);
 
 	char_array_expandable_init(&self->byte_sequence, 330);
 
-	AFSK_Demodulator_start_only(self);
 	AFSK_Demodulator_reset(self);
 
 }
@@ -77,8 +64,6 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self){
 		char_ring_buffer_destory(&self->input_buffer);
 	if(self->fcd_buffer.size != 0)
 		float_ring_buffer_destory(&self->fcd_buffer);
-	if(self->fcavg_buffer.size != 0)
-		float_ring_buffer_destory(&self->fcavg_buffer);
 
 	if(self->bit_sequence.size != 0)
 		char_ring_buffer_destory(&self->bit_sequence);
@@ -150,156 +135,107 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 			float_ring_buffer_pop(&self->fcd_buffer);
 
-			float_ring_buffer_put(&self->fcavg_buffer, fcd_avg);
+			int current_value = 0;
+			if(fcd_avg < 0)
+				current_value = 1;
 
-			int current_bits = float_ring_buffer_avail(&self->fcavg_buffer);
+			if(current_value != self->last_bit){
 
-			bool keep_going = true;
+				// Calculate how many bit lengths there are to the transition
+				float new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
 
-			// Wait until we have a x+1 bits stored up
-			if(current_bits % ((int)self->bitwidth) == 0 && current_bits != 0 && current_bits != ((int)self->bitwidth)){
+				for(i = 0; i < new_bits; i++){
 
-				int transition = 0;
+					int next_bit = 0;
 
-				// If no freq_sych lock to nearest zero crossing 50% ahead behind
-				if(1){//!freq_sync_found){
+					bool fb = self->bit_stuffing;
+					if((current_value == 0 && self->last_bit == 0) || (current_value == 1 && self->last_bit == 1)){
 
-					// Zero crossing index
-					int zc_index = -1;
+						next_bit = 1;
+						if(self->same_count == 4){
 
-					int i;
-					// +/- half a bit
-					avail = float_ring_buffer_avail(&self->fcavg_buffer);
-					for(i = current_bits-self->bitwidth-(self->bitwidth/2); i < avail && i < current_bits-self->bitwidth+(self->bitwidth/2); i++){
-
-						// If the bits are one negative one positive IE zero-crossing
-						float a = float_ring_buffer_get(&self->fcavg_buffer, i-1);
-						float b = float_ring_buffer_get(&self->fcavg_buffer,   i);
-						if( (a >= 0 && b < 0) || (b >= 0 && a < 0)){
-							zc_index = i;
-						}
-
-					}
-
-					// No zero crossing keep on going
-					if(zc_index == -1) keep_going = false;
-
-					// Found something!
-					else
-						transition = zc_index;
-
-				}
-				// check 20% of a bit width ahead/behind current bits out for enough slope to be considered a change
-				// enough slope to be considered a change is relative to the magnitude of the Fourier coefficient difference
-				// and slope is taken over a window width
-				// if it is a change and there is a zero crossing in the 20% lock to zero crossing
-				// if no zero crossing just center at the current distance out
-				// if its a change keep going
-				if(keep_going){
-
-					// Remove bits we just processed
-					float_ring_buffer_remove(&self->fcavg_buffer, transition);
-
-					int current_value = 0;
-					if(float_ring_buffer_get(&self->fcavg_buffer, 0) < 0)
-						current_value = 1;
-
-					// Calculate how many bit lengths there are to the transition
-					float new_bits = (int)((((float)transition)/((float)self->bitwidth))+0.5);
-
-					for(i = 0; i < (int)(new_bits+0.5); i++){
-
-						int next_bit = 0;
-
-						bool fb = self->bit_stuffing;
-						if((current_value == 0 && self->last_bit == 0) || (current_value == 1 && self->last_bit == 1)){
-
-							next_bit = 1;
-							if(self->same_count == 4){
-
-								if(self->freq_sync_found && self->packet_start){
-									self->bit_stuffing = true;
-									self->same_count = 0;
-								}
-
-							} else self->same_count++;
-
-						} else self->same_count = 0;
-
-						self->last_bit = current_value;
-
-						if(!(self->bit_stuffing && next_bit == 0 && fb))
-							char_ring_buffer_put(&self->bit_sequence, next_bit);
-
-						if(fb) self->bit_stuffing = false;
-
-					}
-
-					avail = char_ring_buffer_avail(&self->bit_sequence);
-					if(avail >= 8
-					&& char_ring_buffer_get(&self->bit_sequence, avail-8) == 0
-					&& char_ring_buffer_get(&self->bit_sequence, avail-7) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-6) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-5) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-4) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-3) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-2) == 1
-					&& char_ring_buffer_get(&self->bit_sequence, avail-1) == 0){
-
-						if(self->packet_start) {
-
-							uint16_t len = char_array_expandable_size(&self->byte_sequence);
-							if(len >= 14){
-
-								signed char *data = self->byte_sequence.data;
-								new_data = (char_array*) malloc(sizeof(char_array));
-								new_data->len = len;
-								new_data->data = (signed char*) malloc(sizeof(char)*len);
-								memcpy(new_data->data, data, len);
-
+							if(self->freq_sync_found && self->packet_start){
+								self->bit_stuffing = true;
+								self->same_count = 0;
 							}
 
-							self->freq_sync_found = false;
-							AFSK_Demodulator_reset(self);
+						} else self->same_count++;
 
-						} else {
+					} else self->same_count = 0;
 
-							self->freq_sync_found = true;
-							self->packet_start = false;
+					self->last_bit = current_value;
 
-						}
+					if(!(self->bit_stuffing && next_bit == 0 && fb))
+						char_ring_buffer_put(&self->bit_sequence, next_bit);
 
-						char_ring_buffer_clear(&self->bit_sequence);
-
-					}
-
-					if(self->freq_sync_found && avail >= 15){
-
-						if(!self->packet_start){
-
-							self->packet_start = true;
-
-						} else {
-
-							signed char byte = 0;
-							for(i = 7; i >= 0; i--){
-								byte <<= 1;
-								if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
-							}
-
-							char_ring_buffer_remove(&self->bit_sequence, 8);
-							char_array_expandable_put(&self->byte_sequence, byte);
-
-						}
-
-					}
-
-					self->last = current_value;
+					if(fb) self->bit_stuffing = false;
 
 				}
+
+				avail = char_ring_buffer_avail(&self->bit_sequence);
+				if(avail >= 8
+				&& char_ring_buffer_get(&self->bit_sequence, avail-8) == 0
+				&& char_ring_buffer_get(&self->bit_sequence, avail-7) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-6) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-5) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-4) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-3) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-2) == 1
+				&& char_ring_buffer_get(&self->bit_sequence, avail-1) == 0){
+
+					if(self->packet_start) {
+
+						uint16_t len = char_array_expandable_size(&self->byte_sequence);
+						if(len >= 14){
+
+							signed char *data = self->byte_sequence.data;
+							new_data = (char_array*) malloc(sizeof(char_array));
+							new_data->len = len;
+							new_data->data = (signed char*) malloc(sizeof(char)*len);
+							memcpy(new_data->data, data, len);
+
+						}
+
+						self->freq_sync_found = false;
+						AFSK_Demodulator_reset(self);
+
+					} else {
+
+						self->freq_sync_found = true;
+						self->packet_start = false;
+
+					}
+
+					char_ring_buffer_clear(&self->bit_sequence);
+
+				}
+
+				if(self->freq_sync_found && avail >= 15){
+
+					if(!self->packet_start){
+
+						self->packet_start = true;
+
+					} else {
+
+						signed char byte = 0;
+						for(i = 7; i >= 0; i--){
+							byte <<= 1;
+							if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
+						}
+
+						char_ring_buffer_remove(&self->bit_sequence, 8);
+						char_array_expandable_put(&self->byte_sequence, byte);
+
+					}
+
+				}
+
+				self->count_last = 0;
+				self->last_bit = current_value;
 
 			} else
-				self->countlast++;
+				self->count_last++;
 
 		}
 
@@ -329,10 +265,6 @@ void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1){
 
 void AFSK_Demodulator_set_offset(AFSK_Demodulator *self, float off){
 	self->offset = off;
-}
-
-void AFSK_Demodulator_set_hysteresis(AFSK_Demodulator *self, float hys){
-	self->hysteresis = hys;
 }
 
 void AFSK_Demodulator_set_noise_floor(AFSK_Demodulator *self, float nf){

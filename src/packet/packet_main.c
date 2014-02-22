@@ -198,7 +198,6 @@ int main(int argc, char **argv){
 			arguments.sample_rate,
 			arguments.bit_rate,
 			arguments.offset,
-			0,
 			arguments.noise_floor,
 			arguments.frequency_0,
 			arguments.frequency_1
