@@ -36,24 +36,14 @@ fast-algorithms:
 	$(eval DEFINES+=-DFAST_ALGORITHMS)
 
 ###############################################################################
-# Network fowarder for data                                                   #
-###############################################################################
-
-bin/forward: build/obj/forward.o
-	$(CC) -O3 -o bin/forward build/obj/forward.o
-
-build/obj/forward.o: src/net/forward.c
-	gcc -O3 -o build/obj/forward.o -c src/net/forward.c
-
-###############################################################################
 # Mixes 2 raw audio files                                                     #
 ###############################################################################
 
-bin/mixer: build/obj/mixer.o build/obj/Util.o
-	g++ -O3 -o bin/mixer build/obj/mixer.o build/obj/Util.o
+bin/mixer: build/obj/mixer.o
+	$(CC) $(CFLAGS) -o bin/mixer build/obj/mixer.o
 
-build/obj/mixer.o: src/mixer/mixer.cpp
-	g++ -O3 -o build/obj/mixer.o -c src/mixer/mixer.cpp
+build/obj/mixer.o: src/mixer/mixer.c
+	$(CC) $(CFLAGS) -o build/obj/mixer.o -c src/mixer/mixer.c
 
 ###############################################################################
 # PSK31 Demodulator                                                           #
@@ -115,6 +105,16 @@ build/obj/NOAA_ATP_main.o: src/NOAA_ATP/NOAA_ATP_main.cpp
 
 build/obj/NOAA_ATP.o: src/NOAA_ATP/NOAA_ATP.cpp
 	g++ -O3 -o  build/obj/NOAA_ATP.o -c src/NOAA_ATP/NOAA_ATP.cpp
+
+###############################################################################
+# Network fowarder for data                                                   #
+###############################################################################
+
+bin/forward: build/obj/forward.o
+	$(CC) -O3 -o bin/forward build/obj/forward.o
+
+build/obj/forward.o: src/net/forward.c
+	$(CC) -O3 -o build/obj/forward.o -c src/net/forward.c
 
 ###############################################################################
 # AFSK Demodulator / APRSPacket Decoder                                       #
