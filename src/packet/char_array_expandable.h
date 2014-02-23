@@ -4,21 +4,22 @@
 #define CHAR_ARRAY_EXPANDABLE_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct {
 
-	unsigned short capacity;
-	unsigned short length;
+	uint16_t capacity;
+	uint16_t length;
 
-	signed char *data;
+	int8_t *data;
 
 } char_array_expandable;
 
-void char_array_expandable_init(char_array_expandable *self, unsigned short capacity);
+void char_array_expandable_init(char_array_expandable *self, uint16_t capacity);
 
-void char_array_expandable_put(char_array_expandable *self, signed char c);
+void char_array_expandable_put(char_array_expandable *self, int8_t c);
 
-unsigned short char_array_expandable_size(char_array_expandable *self);
+uint16_t char_array_expandable_size(char_array_expandable *self);
 
 void char_array_expandable_clear(char_array_expandable *self);
 

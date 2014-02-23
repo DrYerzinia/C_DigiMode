@@ -3,12 +3,12 @@
 #include "packet_main.h"
 
 // Command Line Parameters
-const signed char *program_version = "packet 0.7";
-const signed char *program_bug_address = "<dryerzinia@gmail.com>";
+const char *program_version = "packet 0.7";
+const char *program_bug_address = "<dryerzinia@gmail.com>";
 
-static signed char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
+static char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
 
-static signed char args_doc[] = "";
+static char args_doc[] = "";
 
 static struct argp_option options[] = {
 		{"filename", 'i', "FILE", OPTION_ARG_OPTIONAL, "File to read samples from (stdin)"},
@@ -25,7 +25,7 @@ static struct argp_option options[] = {
 
 struct arguments {
 
-	signed char *filename;
+	char *filename;
 
 	int frequency_0;
 	int frequency_1;
@@ -145,11 +145,11 @@ void print_detailed_packet(APRSPacket *packet, unsigned short calculated_checksu
 
 void print_packet(APRSPacket *packet, bool show_errors_bool, bool raw){
 
-	unsigned short fsc = APRSPacket_crc(packet);
+	uint16_t fsc = APRSPacket_crc(packet);
 
 	/* CRC is added to packet with bytes reversed
 	 */
-	unsigned short fsc2 = packet->data.data[packet->data.len-1];
+	uint16_t fsc2 = packet->data.data[packet->data.len-1];
 	fsc2 <<= 8;
 	fsc2 |= packet->data.data[packet->data.len-2] & 0xFF;
 

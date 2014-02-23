@@ -22,7 +22,7 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 		if(n+1 >= data->len) break;
 
 		// Check for 0 bit set on end of last address character indicating that there are no more repeater addresses
-		if(data->data[n-1] & 0x01 != 0) break;
+		if((data->data[n-1] & 0x01) != 0) break;
 
 		if(packet->repeaters > 7) break;
 
@@ -40,9 +40,9 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 
 }
 
-unsigned short APRSPacket_crc(APRSPacket *packet){
+uint16_t APRSPacket_crc(APRSPacket *packet){
 
-	return CRCCCITT(packet->data.data, packet->data.len - 2, APRS_CRC_POLY);
+	return CRCCCITT((uint8_t*) packet->data.data, packet->data.len - 2, APRS_CRC_POLY);
 
 }
 

@@ -2,6 +2,7 @@
 #define APRSPACKET_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #include "../crc/crcccitt.h"

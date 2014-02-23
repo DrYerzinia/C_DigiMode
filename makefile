@@ -9,7 +9,7 @@
 ###############################################################################
 
 CC=gcc
-CFLAGS=-O3
+CFLAGS=-O3 -Wall
 
 .PHONY: build disable-float
 build: create-dirs all
