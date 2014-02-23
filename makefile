@@ -25,6 +25,11 @@ create-dirs:
 # Configuration Options                                                       #
 ###############################################################################
 
+# Enables debug code
+enable-debug:
+	@echo "Debug enabled"
+	$(eval DEFINES+=-D__DEBUG)
+
 # For hardware without FPU's uses Integer only math to gain speed at cost of some accuracy
 disable-float:
 	@echo "Floats disabled"

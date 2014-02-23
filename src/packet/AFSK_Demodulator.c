@@ -2,6 +2,11 @@
 
 #include "AFSK_Demodulator.h"
 
+#ifdef __DEBUG
+	#include <stdio.h>
+	FILE *fourier_coefficient_debug = NULL;
+#endif
+
 void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 	self->count_last = 0;
@@ -23,12 +28,6 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 	self->last_bit = 0;
 
-	self->sample_counter = 0;
-	self->same_count = 0;
-
-	self->freq_sync_found = false;
-	self->packet_start = false;
-
 	self->bit_stuffing = false;
 
 	if(self->input_buffer.size != 0)
@@ -45,6 +44,10 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 }
 
 void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float nf, int frequency_0, int frequency_1){
+
+	#ifdef __DEBUG
+		fourier_coefficient_debug = fopen("fourier_coefficient_debug.raw", "w");
+	#endif
 
 	self->sample_rate = sr;
 	self->bit_rate = br;
@@ -142,104 +145,93 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 			float_ring_buffer_pop(&self->fcd_buffer);
 
+			/* Debug code to dump averaged Fourier coefficients to raw data
+			 * file for analysis
+			 */
+			#ifdef __DEBUG
+				fputc(fcd_avg/10000, fourier_coefficient_debug);
+			#endif
+
 			int current_value = 0;
 			if(fcd_avg < 0)
 				current_value = 1;
 
 			if(current_value != self->last_bit){
 
+				self->last_bit = current_value;
+
 				// Calculate how many bit lengths there are to the transition
 				float new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
 
-				for(i = 0; i < new_bits; i++){
+				// If we are not bit stuffing Add a 0
+				if(!self->bit_stuffing)
+					char_ring_buffer_put(&self->bit_sequence, 0);
 
-					int next_bit = 0;
+				// If we where bit stuffing stop now
+				self->bit_stuffing = false;
 
-					bool fb = self->bit_stuffing;
-					if((current_value == 0 && self->last_bit == 0) || (current_value == 1 && self->last_bit == 1)){
+				// Decrement new_bits
+				new_bits--;
 
-						next_bit = 1;
-						if(self->same_count == 4){
+				// If new_bits > 5 we just found a preamble
+				if(new_bits > 5){
 
-							if(self->freq_sync_found && self->packet_start){
-								self->bit_stuffing = true;
-								self->same_count = 0;
-							}
+					/* Mark the output waveform anytime we see a Preamble
+					 */
+					#ifdef __DEBUG
+						fputc(127, fourier_coefficient_debug);
+					#endif
 
-						} else self->same_count++;
+					// Preamble related things
 
-					} else self->same_count = 0;
+					uint16_t len = char_array_expandable_size(&self->byte_sequence);
+					if(len >= 17){
 
-					self->last_bit = current_value;
-
-					if(!(self->bit_stuffing && next_bit == 0 && fb))
-						char_ring_buffer_put(&self->bit_sequence, next_bit);
-
-					if(fb) self->bit_stuffing = false;
-
-				}
-
-				avail = char_ring_buffer_avail(&self->bit_sequence);
-				if(avail >= 8
-				&& char_ring_buffer_get(&self->bit_sequence, avail-8) == 0
-				&& char_ring_buffer_get(&self->bit_sequence, avail-7) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-6) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-5) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-4) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-3) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-2) == 1
-				&& char_ring_buffer_get(&self->bit_sequence, avail-1) == 0){
-
-					if(self->packet_start) {
-
-						uint16_t len = char_array_expandable_size(&self->byte_sequence);
-						if(len >= 14){
-
-							signed char *data = self->byte_sequence.data;
-							new_data = (char_array*) malloc(sizeof(char_array));
-							new_data->len = len;
-							new_data->data = (signed char*) malloc(sizeof(char)*len);
-							memcpy(new_data->data, data, len);
-
-						}
-
-						self->freq_sync_found = false;
-						AFSK_Demodulator_reset(self);
-
-					} else {
-
-						self->freq_sync_found = true;
-						self->packet_start = false;
+						signed char *data = self->byte_sequence.data;
+						new_data = (char_array*) malloc(sizeof(char_array));
+						new_data->len = len;
+						new_data->data = (signed char*) malloc(sizeof(char)*len);
+						memcpy(new_data->data, data, len);
 
 					}
 
 					char_ring_buffer_clear(&self->bit_sequence);
+					char_array_expandable_clear(&self->byte_sequence);
+
+					// Set bit stuffing true so last bit of preamble will be removed
+					self->bit_stuffing = true;
 
 				}
 
-				if(self->freq_sync_found && avail >= 15){
+				// If its not a preamble
+				else {
 
-					if(!self->packet_start){
+					// If new_bits == 5 bit stuffing is occurring
+					if(new_bits == 5)
+						self->bit_stuffing = true;
 
-						self->packet_start = true;
+					// Add the rest of the bits as 1's
+					for(i = 0; i < new_bits; i++)
+						char_ring_buffer_put(&self->bit_sequence, 1);
 
-					} else {
+				}
 
-						signed char byte = 0;
-						for(i = 7; i >= 0; i--){
-							byte <<= 1;
-							if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
-						}
+				// Add bits to the sequence
+				avail = char_ring_buffer_avail(&self->bit_sequence);
+				if(avail >= 8){
 
-						char_ring_buffer_remove(&self->bit_sequence, 8);
-						char_array_expandable_put(&self->byte_sequence, byte);
-
+					signed char byte = 0;
+					for(i = 7; i >= 0; i--){
+						byte <<= 1;
+						if(char_ring_buffer_get(&self->bit_sequence, i)) byte |= 1;
 					}
+
+					char_ring_buffer_remove(&self->bit_sequence, 8);
+					char_array_expandable_put(&self->byte_sequence, byte);
 
 				}
 
 				self->count_last = 0;
-				self->last_bit = current_value;
 
 			} else
 				self->count_last++;
@@ -247,8 +239,6 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 		}
 
 	}
-
-	self->sample_counter++;
 
 	return new_data;
 

@@ -81,14 +81,6 @@ typedef struct {
 	 */
 	float noise_floor;
 
-	/* Maintains count of samples since last reset to maintain the phase of
-	 * the sin and cos for the Fourier Coefficient calculation
-	 * TODO: Test to see if this is necessary perhaps always starting from
-	 *  a phase of zero instead of maintaining phase between samples will
-	 *  improve decodes
-	 */
-	int sample_counter;
-
 	/* Count of samples since last Zero-Crossing
 	 */
 	int count_last;
@@ -120,27 +112,10 @@ typedef struct {
 	 */
 	int last_bit;
 
-	/* Count of the number of bits that have been the same to detect
-	 * bit-stuffing the the loop that generates bits from the current bit
-	 * count
-	 * TODO: Examine loop in detail and try to improve
-	 */
-	int same_count;
-
 	/* Indicator if bit stuffing is occurring
 	 * TODO: same as above
 	 */
 	bool bit_stuffing;
-
-	/* Indicator of detection of the Flag indicating a packet is being
-	 * received
-	 */
-	bool freq_sync_found;
-
-	/* If set it means we had a Frequency Sync and we have received enough bits
-	 * to start converting them into bytes to add to the packet
-	 */
-	bool packet_start;
 
 	/* Expandable array containing the sequence of bytes in the received packet
 	 * It has a default size of 330 to contain a standard APRS packet without
