@@ -42,7 +42,7 @@ void APRSPacket_from_data(APRSPacket *packet, char_array *data){
 
 unsigned short APRSPacket_crc(APRSPacket *packet){
 
-	return CRCCCITT(&packet->data);
+	return CRCCCITT(packet->data.data, packet->data.len - 2, APRS_CRC_POLY);
 
 }
 

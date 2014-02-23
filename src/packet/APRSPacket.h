@@ -8,6 +8,8 @@
 
 #include "../container/char_array.h"
 
+#define APRS_CRC_POLY 0x8408
+
 typedef struct {
 
 	char_array		data;

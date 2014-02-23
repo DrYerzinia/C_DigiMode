@@ -145,11 +145,13 @@ void print_detailed_packet(APRSPacket *packet, unsigned short calculated_checksu
 
 void print_packet(APRSPacket *packet, bool show_errors_bool, bool raw){
 
-	unsigned short fsc = CRCCCITT(&packet->data);
+	unsigned short fsc = APRSPacket_crc(packet);
 
-	unsigned short fsc2 = packet->data.data[packet->data.len-2];
+	/* CRC is added to packet with bytes reversed
+	 */
+	unsigned short fsc2 = packet->data.data[packet->data.len-1];
 	fsc2 <<= 8;
-	fsc2 |= packet->data.data[packet->data.len-1]&0xFF;
+	fsc2 |= packet->data.data[packet->data.len-2] & 0xFF;
 
 	if(fsc != fsc2 && !show_errors_bool) return;
 
