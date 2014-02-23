@@ -22,14 +22,16 @@
 
 #include "APRSPacket.h"
 
-#include "../math/trig_table.h"
-
 #include "../container/char_array.h"
 
 #include "char_array_expandable.h"
 
 #include "char_ring_buffer.h"
 #include "float_ring_buffer.h"
+
+#ifndef PI
+#define PI 3.14159265359
+#endif
 
 typedef struct {
 
@@ -48,10 +50,10 @@ typedef struct {
 	 * functions on the decoder as other variables require re-calibration
 	 * when these change
 	 */
-	float sample_rate;
-	float bit_rate;
+	uint32_t sample_rate;
+	uint16_t bit_rate;
 
-	float window;
+	uint8_t window;
 
 	/* Frequencies of the 2 FSK symbols
 	 * Standard VHF packet is 1200/2200 Hz
@@ -59,8 +61,8 @@ typedef struct {
 	 *  PK232 tones 1600/1800 Hz
 	 *  KAM tones 2110/2310 Hz
 	 */
-	float frequency_0;
-	float frequency_1;
+	uint16_t frequency_0;
+	uint16_t frequency_1;
 
 	/* Goertzel Coefficients for calculating magnitude of frequencies
 	 */
@@ -83,12 +85,12 @@ typedef struct {
 
 	/* Count of samples since last Zero-Crossing
 	 */
-	int count_last;
+	uint16_t count_last;
 
 	/* Width of a bit calculated from Sample Rate and Bit Rate
 	 * TODO: call reset in the functions that set Sample Rate and Bit Rate
 	 */
-	float bitwidth;
+	uint8_t bitwidth;
 
 	/* A 14 character ring buffer for Bit Data
 	 * Stores currently demodulated bits after Bit Stuffing removal and
@@ -103,13 +105,13 @@ typedef struct {
 	 * Used with offset parameter to adjust the center of the signal for
 	 * determining Zero-Crossings of the Averaged Fourier signal
 	 */
-	int fcMax;
-	int fcMin;
+	int32_t fcMax;
+	int32_t fcMin;
 
 	/* Value of the last bit to be decoded
 	 * used to check if there has been a Zero-Crossing
 	 */
-	int last_bit;
+	uint8_t last_bit;
 
 	/* Indicator if bit stuffing is occurring
 	 * TODO: same as above
@@ -126,7 +128,7 @@ typedef struct {
 
 /* Set up the demodulator with parameters for the type of signal to receive
  */
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float nf, int frequency_0, int frequency_1);
+void AFSK_Demodulator_init(AFSK_Demodulator *self, uint32_t sr, uint16_t br, float off, float nf, uint16_t frequency_0, uint16_t frequency_1);
 
 /* Deallocates memory used in buffers
  * Call this when you are done with decoder or you will have memory leaks
@@ -138,20 +140,20 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self);
  * if this byte did not complete demodulation of a packet it returns a
  * NULL pointer instead
  */
-char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char data_point);
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_point);
 
 /* Adjust the bit rate of the incoming data and the sample rate of the
  * audio signal that is being processed
  * These functions reset the window width so these parameters can not be
  * adjusted directly
  */
-void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr);
-void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br);
+void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, uint32_t sr);
+void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, uint16_t br);
 
 /* Set the tone frequencies to listen for packets on
  */
-void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, float f0);
-void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1);
+void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, uint16_t f0);
+void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, uint16_t f1);
 
 /* Set demodulator tuning parameters of the demodulator
  * Adjusting the offset and noise floor can increase the number of packets

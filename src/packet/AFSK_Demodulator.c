@@ -18,8 +18,8 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 	/*
 	 * Calculate Goertzel coefficents for calculating frequency magnitudes
 	 */
-	float k0 = (int)(0.5+(self->window*self->frequency_0/self->sample_rate));
-	float k1 = (int)(0.5+(self->window*self->frequency_1/self->sample_rate));
+	float k0 = (int)(0.5+((float)self->window*self->frequency_0/self->sample_rate));
+	float k1 = (int)(0.5+((float)self->window*self->frequency_1/self->sample_rate));
 	float w0 = (2*PI/self->window)*k0;
 	float w1 = (2*PI/self->window)*k1;
 
@@ -43,7 +43,7 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 }
 
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float nf, int frequency_0, int frequency_1){
+void AFSK_Demodulator_init(AFSK_Demodulator *self, uint32_t sr, uint16_t br, float off, float nf, uint16_t frequency_0, uint16_t frequency_1){
 
 	#ifdef __DEBUG
 		fourier_coefficient_debug = fopen("fourier_coefficient_debug.raw", "w");
@@ -87,7 +87,7 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self){
 
 }
 
-char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char data_point){
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_point){
 
 	char_array* new_data = NULL;
 
@@ -244,19 +244,19 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 }
 
-void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr){
+void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, uint32_t sr){
 	self->sample_rate = sr;
 }
 
-void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br){
+void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, uint16_t br){
 	self->bit_rate = br;
 }
 
-void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, float f0){
+void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, uint16_t f0){
 	self->frequency_0 = f0;
 }
 
-void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1){
+void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, uint16_t f1){
 	self->frequency_1 = f1;
 }
 
