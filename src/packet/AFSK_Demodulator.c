@@ -100,7 +100,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 		float q2_0 = 0;
 		float q2_1 = 0;
 
-		int i;
+		int16_t i;
 		for(i = 0; i <= self->window; i++){
 
 			float q0_0 = self->coeff0*q1_0 - q2_0 + char_ring_buffer_get(&self->input_buffer, i);
@@ -135,7 +135,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 
 		float_ring_buffer_put(&self->fcd_buffer, fcd);
 
-		int avail = float_ring_buffer_avail(&self->fcd_buffer);
+		uint16_t avail = float_ring_buffer_avail(&self->fcd_buffer);
 		if(avail > self->window/2){
 
 			float fcd_avg = 0;
@@ -152,7 +152,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 				fputc(fcd_avg/10000, fourier_coefficient_debug);
 			#endif
 
-			int current_value = 0;
+			uint8_t current_value = 0;
 			if(fcd_avg < 0)
 				current_value = 1;
 
@@ -161,7 +161,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 				self->last_bit = current_value;
 
 				// Calculate how many bit lengths there are to the transition
-				float new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
+				uint8_t new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
 
 				// If we are not bit stuffing Add a 0
 				if(!self->bit_stuffing)
@@ -246,18 +246,22 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 
 void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, uint32_t sr){
 	self->sample_rate = sr;
+	AFSK_Demodulator_reset(self);
 }
 
 void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, uint16_t br){
 	self->bit_rate = br;
+	AFSK_Demodulator_reset(self);
 }
 
 void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, uint16_t f0){
 	self->frequency_0 = f0;
+	AFSK_Demodulator_reset(self);
 }
 
 void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, uint16_t f1){
 	self->frequency_1 = f1;
+	AFSK_Demodulator_reset(self);
 }
 
 void AFSK_Demodulator_set_offset(AFSK_Demodulator *self, float off){
