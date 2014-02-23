@@ -90,12 +90,11 @@ typedef struct {
 	 */
 	float bitwidth;
 
-	/* A 30 character ring buffer for Bit Data
+	/* A 14 character ring buffer for Bit Data
 	 * Stores currently demodulated bits after Bit Stuffing removal and
 	 * NRZI decoding
 	 * The highest number of bits that should be collected before they are
-	 * pushed to the byte array is ~16
-	 * TODO: Determine actual necessary size and adjust
+	 * pushed to the byte array is 12, 8 for a byte + 6 from bit stuffing
 	 */
 	char_ring_buffer bit_sequence;
 

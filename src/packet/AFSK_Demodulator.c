@@ -64,7 +64,7 @@ void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off
 	self->fcMax = 0;
 	self->fcMin = 0;
 
-	char_ring_buffer_init(&self->bit_sequence, 30);
+	char_ring_buffer_init(&self->bit_sequence, 14);
 
 	char_array_expandable_init(&self->byte_sequence, 330);
 
