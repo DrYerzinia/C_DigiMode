@@ -28,6 +28,8 @@ void char_array_expandable_put(char_array_expandable *self, signed char c){
 
 		free(old_data);
 
+		self->data = new_data;
+
 	}
 
 	self->data[self->length] =  c;

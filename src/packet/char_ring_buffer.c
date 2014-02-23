@@ -58,7 +58,7 @@ void char_ring_buffer_clear(char_ring_buffer *self){
 
 unsigned short char_ring_buffer_avail(char_ring_buffer *self){
 
-	if(self->read_position < self->write_position)
+	if(self->read_position <= self->write_position)
 		return self->write_position - self->read_position;
 
 	return self->write_position + self->size - self->read_position;
