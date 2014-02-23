@@ -18,6 +18,8 @@
 
 #include <ctype.h>
 
+#include <math.h>
+
 #include "APRSPacket.h"
 
 #include "../math/trig_table.h"
@@ -59,6 +61,11 @@ typedef struct {
 	 */
 	float frequency_0;
 	float frequency_1;
+
+	/* Goertzel Coefficients for calculating magnitude of frequencies
+	 */
+	float coeff0;
+	float coeff1;
 
 	/* A number from 0.0-1.0 to multiply by the average signal magnitude and
 	 * then add to the signal to offset the signal so Zero-Crossings of the

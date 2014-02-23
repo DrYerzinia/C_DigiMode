@@ -120,8 +120,8 @@ build/obj/forward.o: src/net/forward.c
 # AFSK Demodulator / APRSPacket Decoder                                       #
 ###############################################################################
 
-bin/packet: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/trig_table.o
-	$(CC) $(CFLAGS) $(DEFINES) -o bin/packet build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/trig_table.o
+bin/packet: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o
+	$(CC) $(CFLAGS) -lm $(DEFINES) -o bin/packet build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o
 
 build/obj/packet_main.o: src/packet/packet_main.c
 	$(CC) $(CFLAGS) $(DEFINES) -o build/obj/packet_main.o -c src/packet/packet_main.c

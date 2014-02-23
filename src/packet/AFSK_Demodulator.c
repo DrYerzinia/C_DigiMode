@@ -10,6 +10,17 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 	self->bitwidth = self->sample_rate/self->bit_rate;
 
+	/*
+	 * Calculate Goertzel coefficents for calculating frequency magnitudes
+	 */
+	float k0 = (int)(0.5+(self->window*self->frequency_0/self->sample_rate));
+	float k1 = (int)(0.5+(self->window*self->frequency_1/self->sample_rate));
+	float w0 = (2*PI/self->window)*k0;
+	float w1 = (2*PI/self->window)*k1;
+
+	self->coeff0 = 2*cos(w0);
+	self->coeff1 = 2*cos(w1);
+
 	self->last_bit = 0;
 
 	self->sample_counter = 0;
@@ -81,31 +92,27 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 	if(char_ring_buffer_avail(&self->input_buffer) > self->window){
 
-		float s1i = 0;
-		float s1q = 0;
-		float s2i = 0;
-		float s2q = 0;
+		float q1_0 = 0;
+		float q1_1 = 0;
+		float q2_0 = 0;
+		float q2_1 = 0;
 
 		int i;
 		for(i = 0; i <= self->window; i++){
 
-			float time = 2*PI*(self->sample_counter+i)/self->sample_rate;
-
-			float phase0 = self->frequency_0 * time;
-			float phase1 = self->frequency_1 * time;
-
-			s1i += char_ring_buffer_get(&self->input_buffer, i) * rad_sin(phase0);
-			s1q += char_ring_buffer_get(&self->input_buffer, i) * rad_cos(phase0);
-
-			s2i += char_ring_buffer_get(&self->input_buffer, i) * rad_sin(phase1);
-			s2q += char_ring_buffer_get(&self->input_buffer, i) * rad_cos(phase1);
+			float q0_0 = self->coeff0*q1_0 - q2_0 + char_ring_buffer_get(&self->input_buffer, i);
+			float q0_1 = self->coeff1*q1_1 - q2_1 + char_ring_buffer_get(&self->input_buffer, i);
+			q2_0 = q1_0;
+			q2_1 = q1_1;
+			q1_0 = q0_0;
+			q1_1 = q0_1;
 
 		}
 
-		float fc1 = s1i*s1i + s1q*s1q;
-		float fc2 = s2i*s2i + s2q*s2q;
+		float fc1 = q1_0*q1_0 + q2_0*q2_0 - q1_0*q2_0*self->coeff0;
+		float fc2 = q1_1*q1_1 + q2_1*q2_1 - q1_1*q2_1*self->coeff1;
 
-		float fcd = (fc1 - fc2);
+		float fcd = fc1 - fc2;
 
 		if(fcd > self->fcMax)
 			self->fcMax = fcd*0.85 + self->fcMax*0.15;
@@ -126,7 +133,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 		float_ring_buffer_put(&self->fcd_buffer, fcd);
 
 		int avail = float_ring_buffer_avail(&self->fcd_buffer);
-		if(avail > self->window){
+		if(avail > self->window/2){
 
 			float fcd_avg = 0;
 			for(i = 0; i < avail; i++)
