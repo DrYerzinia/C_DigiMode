@@ -183,9 +183,9 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self);
 /**
  * @ingroup Packet
  * Pass another byte of signal data to the demodulator
- * Returns a pointer to a char array containing a demodulated packet
- * if this byte did not complete demodulation of a packet it returns a
- * NULL pointer instead
+ * @returns a pointer to a char array containing a demodulated packet
+ *  if this byte did not complete demodulation of a packet it returns a
+ *  NULL pointer instead
  */
 char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_point);
 

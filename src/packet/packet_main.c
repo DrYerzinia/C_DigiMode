@@ -19,10 +19,13 @@ static struct argp_option options[] = {
 		{"show-errors", 'e', 0, OPTION_ARG_OPTIONAL, "Show packets with bad checksums"},
 		{"raw", 'r', 0, OPTION_ARG_OPTIONAL, "Print packets as raw data with unsigned short length before them"},
 		{"noise-floor", 'n', 0, OPTION_ARG_OPTIONAL, "Noise floor (Not properly implemented yet)"},
-		{"offset", 'o', "FLOAT", OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fouriour Coefficent difference by (0.0925)"},
+		{"offset", 'o', "FLOAT", OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fourier Coefficient difference by (0.0925)"},
 		{0}
 };
 
+/**
+ * Array for arguments to packet executable
+ */
 struct arguments {
 
 	char *filename;

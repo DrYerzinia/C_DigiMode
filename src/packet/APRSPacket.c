@@ -1,3 +1,8 @@
+/**
+ * @file	APRSPacket.c
+ * @author	Michael Marques <dryerzinia@gmail.com>
+ */
+
 #include "APRSPacket.h"
 
 void APRSPacket_from_data(APRSPacket *packet, char_array *data){
