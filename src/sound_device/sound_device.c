@@ -3,11 +3,6 @@
  * @defgroup sound_device Audio Device Controllers
  */
 
-#include <iostream>
-#include <string>
-
-#include "../util/Util.h"
-
 #ifdef __CYGWIN32__
 #define __OSS__
 #else
@@ -33,10 +28,6 @@
 
 #ifdef __PULSE__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -44,6 +35,7 @@
 
 #include <pulse/simple.h>
 #include <pulse/error.h>
+
 #define BUFSIZE 1024
 
 /* A simple routine calling UNIX write() in a loop */

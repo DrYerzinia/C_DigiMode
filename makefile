@@ -105,11 +105,11 @@ build/obj/FIR_filter.o: src/filter/FIR_filter.cpp
 # Gets Microphone and pipes to stdout or file                                 #
 ###############################################################################
 
-bin/sound_device: build/obj/sound_device.o build/obj/Util.o
-	g++ -O3 -o $@ build/obj/sound_device.o build/obj/Util.o -lpulse -lpulse-simple
+bin/sound_device: build/obj/sound_device.o
+	$(CC) $(CFLAGS) -o $@ build/obj/sound_device.o -lpulse -lpulse-simple
 
-build/obj/sound_device.o: src/sound_device/sound_device.cpp
-	g++ -O3 -o $@ -c src/sound_device/sound_device.cpp
+build/obj/sound_device.o: src/sound_device/sound_device.c
+	$(CC) $(CFLAGS) -o $@ -c src/sound_device/sound_device.c
 
 ###############################################################################
 # NOAA ATP decoder                                                            #
