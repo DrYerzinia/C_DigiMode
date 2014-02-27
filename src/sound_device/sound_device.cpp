@@ -1,4 +1,7 @@
-// sound_device.cpp
+/**
+ * @file sound_device.cpp
+ * @defgroup sound_device Audio Device Controllers
+ */
 
 #include <iostream>
 #include <string>

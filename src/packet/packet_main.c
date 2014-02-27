@@ -3,12 +3,12 @@
 #include "packet_main.h"
 
 // Command Line Parameters
-const signed char *program_version = "packet 0.7";
-const signed char *program_bug_address = "<dryerzinia@gmail.com>";
+const char *program_version = "packet 0.7";
+const char *program_bug_address = "<dryerzinia@gmail.com>";
 
-static signed char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
+static char doc[] = "packet -- A program for demodulating AFSK encoded APRS packets";
 
-static signed char args_doc[] = "";
+static char args_doc[] = "";
 
 static struct argp_option options[] = {
 		{"filename", 'i', "FILE", OPTION_ARG_OPTIONAL, "File to read samples from (stdin)"},
@@ -19,13 +19,16 @@ static struct argp_option options[] = {
 		{"show-errors", 'e', 0, OPTION_ARG_OPTIONAL, "Show packets with bad checksums"},
 		{"raw", 'r', 0, OPTION_ARG_OPTIONAL, "Print packets as raw data with unsigned short length before them"},
 		{"noise-floor", 'n', 0, OPTION_ARG_OPTIONAL, "Noise floor (Not properly implemented yet)"},
-		{"offset", 'o', "FLOAT", OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fouriour Coefficent difference by (0.0925)"},
+		{"offset", 'o', "FLOAT", OPTION_ARG_OPTIONAL, "Float offset to multiply average amplitude of the Fourier Coefficient difference by (0.0925)"},
 		{0}
 };
 
+/**
+ * Array for arguments to packet executable
+ */
 struct arguments {
 
-	signed char *filename;
+	char *filename;
 
 	int frequency_0;
 	int frequency_1;
@@ -145,11 +148,13 @@ void print_detailed_packet(APRSPacket *packet, unsigned short calculated_checksu
 
 void print_packet(APRSPacket *packet, bool show_errors_bool, bool raw){
 
-	unsigned short fsc = CRCCCITT(&packet->data);
+	uint16_t fsc = APRSPacket_crc(packet);
 
-	unsigned short fsc2 = packet->data.data[packet->data.len-2];
+	/* CRC is added to packet with bytes reversed
+	 */
+	uint16_t fsc2 = packet->data.data[packet->data.len-1];
 	fsc2 <<= 8;
-	fsc2 |= packet->data.data[packet->data.len-1]&0xFF;
+	fsc2 |= packet->data.data[packet->data.len-2] & 0xFF;
 
 	if(fsc != fsc2 && !show_errors_bool) return;
 

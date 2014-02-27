@@ -18,8 +18,8 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 	/*
 	 * Calculate Goertzel coefficents for calculating frequency magnitudes
 	 */
-	float k0 = (int)(0.5+(self->window*self->frequency_0/self->sample_rate));
-	float k1 = (int)(0.5+(self->window*self->frequency_1/self->sample_rate));
+	float k0 = (int)(0.5+((float)self->window*self->frequency_0/self->sample_rate));
+	float k1 = (int)(0.5+((float)self->window*self->frequency_1/self->sample_rate));
 	float w0 = (2*PI/self->window)*k0;
 	float w1 = (2*PI/self->window)*k1;
 
@@ -43,7 +43,7 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 
 }
 
-void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off, float nf, int frequency_0, int frequency_1){
+void AFSK_Demodulator_init(AFSK_Demodulator *self, uint32_t sr, uint16_t br, float off, float nf, uint16_t frequency_0, uint16_t frequency_1){
 
 	#ifdef __DEBUG
 		fourier_coefficient_debug = fopen("fourier_coefficient_debug.raw", "w");
@@ -64,7 +64,7 @@ void AFSK_Demodulator_init(AFSK_Demodulator *self, float sr, float br, float off
 	self->fcMax = 0;
 	self->fcMin = 0;
 
-	char_ring_buffer_init(&self->bit_sequence, 30);
+	char_ring_buffer_init(&self->bit_sequence, 14);
 
 	char_array_expandable_init(&self->byte_sequence, 330);
 
@@ -87,7 +87,7 @@ void AFSK_Demodulator_destroy(AFSK_Demodulator *self){
 
 }
 
-char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char data_point){
+char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_point){
 
 	char_array* new_data = NULL;
 
@@ -100,7 +100,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 		float q2_0 = 0;
 		float q2_1 = 0;
 
-		int i;
+		int16_t i;
 		for(i = 0; i <= self->window; i++){
 
 			float q0_0 = self->coeff0*q1_0 - q2_0 + char_ring_buffer_get(&self->input_buffer, i);
@@ -135,7 +135,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 		float_ring_buffer_put(&self->fcd_buffer, fcd);
 
-		int avail = float_ring_buffer_avail(&self->fcd_buffer);
+		uint16_t avail = float_ring_buffer_avail(&self->fcd_buffer);
 		if(avail > self->window/2){
 
 			float fcd_avg = 0;
@@ -152,7 +152,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 				fputc(fcd_avg/10000, fourier_coefficient_debug);
 			#endif
 
-			int current_value = 0;
+			uint8_t current_value = 0;
 			if(fcd_avg < 0)
 				current_value = 1;
 
@@ -161,7 +161,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 				self->last_bit = current_value;
 
 				// Calculate how many bit lengths there are to the transition
-				float new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
+				uint8_t new_bits = (int)((((float)self->count_last)/((float)self->bitwidth))+0.5);
 
 				// If we are not bit stuffing Add a 0
 				if(!self->bit_stuffing)
@@ -244,20 +244,24 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, signed char d
 
 }
 
-void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, float sr){
+void AFSK_Demodulator_set_sample_rate(AFSK_Demodulator *self, uint32_t sr){
 	self->sample_rate = sr;
+	AFSK_Demodulator_reset(self);
 }
 
-void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, float br){
+void AFSK_Demodulator_set_bit_rate(AFSK_Demodulator *self, uint16_t br){
 	self->bit_rate = br;
+	AFSK_Demodulator_reset(self);
 }
 
-void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, float f0){
+void AFSK_Demodulator_set_frequency_0(AFSK_Demodulator *self, uint16_t f0){
 	self->frequency_0 = f0;
+	AFSK_Demodulator_reset(self);
 }
 
-void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, float f1){
+void AFSK_Demodulator_set_frequency_1(AFSK_Demodulator *self, uint16_t f1){
 	self->frequency_1 = f1;
+	AFSK_Demodulator_reset(self);
 }
 
 void AFSK_Demodulator_set_offset(AFSK_Demodulator *self, float off){

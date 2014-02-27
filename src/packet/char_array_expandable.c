@@ -2,27 +2,27 @@
 
 #include "char_array_expandable.h"
 
-void char_array_expandable_init(char_array_expandable *self, unsigned short capacity){
+void char_array_expandable_init(char_array_expandable *self, uint16_t capacity){
 
 	self->length = 0;
 	self->capacity = capacity;
 
-	self->data = (signed char*) malloc(sizeof(char)*capacity);
+	self->data = (int8_t*) malloc(sizeof(int8_t)*capacity);
 
 }
 
-void char_array_expandable_put(char_array_expandable *self, signed char c){
+void char_array_expandable_put(char_array_expandable *self, int8_t c){
 
 	if(self->length == self->capacity){
 
-		unsigned char old_capacity = self->capacity;
+		uint16_t old_capacity = self->capacity;
 
 		self->capacity += self->capacity/5;
 
-		signed char *new_data = (signed char*) malloc(sizeof(char) * self->capacity);
-		signed char *old_data = self->data;
+		int8_t *new_data = (int8_t*) malloc(sizeof(int8_t) * self->capacity);
+		int8_t *old_data = self->data;
 
-		unsigned char i;
+		uint16_t i;
 		for(i = 0; i < old_capacity; i++)
 			new_data[i] = old_data[i];
 
@@ -38,7 +38,7 @@ void char_array_expandable_put(char_array_expandable *self, signed char c){
 
 }
 
-unsigned short char_array_expandable_size(char_array_expandable *self){
+uint16_t char_array_expandable_size(char_array_expandable *self){
 
 	return self->length;
 
