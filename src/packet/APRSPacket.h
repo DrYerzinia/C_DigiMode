@@ -43,21 +43,21 @@ typedef struct {
 	 * Destination address of packet with SSID
 	 * May contain Mic-E data
 	 */
-	char		destination_address[8];
+	signed char		destination_address[8];
 	/**
 	 * Source of the packet with SSID
 	 */
-	char		source_address[8];
+	signed char		source_address[8];
 
 	/**
 	 * Number of repeaters
 	 * A maximum of 8 repeaters is allowed
 	 */
-	uint8_t		repeaters;
+	uint8_t			repeaters;
 	/**
 	 * List of repeaters
 	 */
-	char		**repeater_addresses;
+	signed char		**repeater_addresses;
 
 } APRSPacket;
 

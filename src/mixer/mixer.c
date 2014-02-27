@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <argp.h>
 
-const signed char *program_version = "Mixer 1.0";
-const signed char *program_bug_address = "<dryerzinia@gmail.com>";
+const char *program_version = "Mixer 1.0";
+const char *program_bug_address = "<dryerzinia@gmail.com>";
 
-static signed char doc[] = "Mixer -- A program for mixing 2 raw audio files together";
+static char doc[] = "Mixer -- A program for mixing 2 raw audio files together";
 
-static signed char args_doc[] = "";
+static char args_doc[] = "";
 
 static struct argp_option options[] = {
 		{"input-file-1", 'i', "FILE", 0, "First raw audio file to mix"},
@@ -20,10 +20,10 @@ static struct argp_option options[] = {
 
 struct arguments {
 
-	signed char *in_1_filename;
-	signed char *in_2_filename;
+	char *in_1_filename;
+	char *in_2_filename;
 
-	signed char *out_filename;
+	char *out_filename;
 
 };
 
