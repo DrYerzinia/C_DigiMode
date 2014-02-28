@@ -11,10 +11,13 @@
 CC=gcc
 CFLAGS=-O3 -Wall
 
-.PHONY: build disable-float
+SOUND_DEVICE_MODE=-D__OSS__
+SOUND_DEVICE_LIB=
+
+.PHONY: build enable-debug disable-float fast-algorithms sound-device-alsa
 build: create-dirs all
 
-all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer bin/forward
+all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer bin/forward bin/UARTRecord
 
 create-dirs:
 	mkdir -p bin
@@ -39,6 +42,18 @@ disable-float:
 fast-algorithms:
 	@echo "Faster Less accurate algorithms enabled"
 	$(eval DEFINES+=-DFAST_ALGORITHMS)
+
+# Set sound device to build with ALSA
+sound-device-alsa:
+	@echo "Sound device building with ALSA"
+	$(eval SOUND_DEVICE_MODE=-D__ALSA__)
+	$(eval SOUND_DEVICE_LIB=-lasound)
+
+# Set sound device to build with PULSE
+sound-device-pulse:
+	@echo "Sound device building with PULSE"
+	$(eval SOUND_DEVICE_MODE=-D__PULSE__)
+	$(eval SOUND_DEVICE_LIB=-lpulse -lpulse-simple)
 
 ###############################################################################
 # Mixes 2 raw audio files                                                     #
@@ -106,10 +121,10 @@ build/obj/FIR_filter.o: src/filter/FIR_filter.cpp
 ###############################################################################
 
 bin/sound_device: build/obj/sound_device.o
-	$(CC) $(CFLAGS) -o $@ build/obj/sound_device.o -lpulse -lpulse-simple
+	$(CC) $(CFLAGS) -o $@ build/obj/sound_device.o $(SOUND_DEVICE_LIB)
 
 build/obj/sound_device.o: src/sound_device/sound_device.c
-	$(CC) $(CFLAGS) -o $@ -c src/sound_device/sound_device.c
+	$(CC) $(CFLAGS) $(SOUND_DEVICE_MODE) -o $@ -c src/sound_device/sound_device.c
 
 ###############################################################################
 # NOAA ATP decoder                                                            #
