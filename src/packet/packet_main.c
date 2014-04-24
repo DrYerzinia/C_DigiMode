@@ -168,6 +168,14 @@ void print_packet(APRSPacket *packet, bool show_errors_bool, bool raw){
 
 int main(int argc, char **argv){
 
+	#ifdef EMSCRIPTEN
+		EM_ASM(
+				if(typeof window === 'undefined'){
+					FS.mount(NODEFS, { root: '.' }, '/');
+				}
+		);
+	#endif
+
 	struct arguments arguments;
 
 	arguments.filename = NULL;
@@ -184,7 +192,10 @@ int main(int argc, char **argv){
 	arguments.offset = 0.0925;
 	arguments.noise_floor = 0;
 
-	argp_parse(&argp, argc, argv, 0, 0, &arguments);
+	error_t parsed = argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+	if(parsed != 0)
+		return parsed;
 
 	FILE *input_file = NULL;
 

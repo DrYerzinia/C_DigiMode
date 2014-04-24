@@ -15,6 +15,10 @@
  * frequency of the two AFSK tones, offset multiplier, and noise floor.
  */
 
+#ifdef EMSCRIPTEN
+	#include <emscripten.h>
+#endif
+
 #include <stdlib.h>
 
 #include <stddef.h>
@@ -22,6 +26,6 @@
 #include <ctype.h>
 #include <stdio.h>
 
-#include <argp.h>
+#include "../util/argp.h"
 
 #include "AFSK_Demodulator.h"

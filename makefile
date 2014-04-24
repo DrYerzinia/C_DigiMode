@@ -9,7 +9,9 @@
 ###############################################################################
 
 CC=gcc
-CFLAGS=-O3 -Wall
+CFLAGS=-O2 -Wall
+
+EXT=
 
 SOUND_DEVICE_MODE=-D__OSS__
 SOUND_DEVICE_LIB=
@@ -54,6 +56,11 @@ sound-device-pulse:
 	@echo "Sound device building with PULSE"
 	$(eval SOUND_DEVICE_MODE=-D__PULSE__)
 	$(eval SOUND_DEVICE_LIB=-lpulse -lpulse-simple)
+
+# Build with EmScripten
+compiler-emscripten:
+	@echo "Building with emscripten."
+	$(eval CC=emcc)
 
 ###############################################################################
 # Mixes 2 raw audio files                                                     #
@@ -153,8 +160,11 @@ build/obj/forward.o: src/net/forward.c
 # AFSK Demodulator / APRSPacket Decoder                                       #
 ###############################################################################
 
-bin/packet: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o
-	$(CC) $(CFLAGS) -lm $(DEFINES) -o $@ build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o
+bin/packet: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/argp.o
+	$(CC) $(CFLAGS) -lm $(DEFINES) -o $@ build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/argp.o
+
+bin/packet.js: build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/argp.o
+	$(CC) $(CFLAGS) $(DEFINES) -o $@ build/obj/char_array_expandable.o build/obj/float_ring_buffer.o build/obj/char_ring_buffer.o build/obj/APRSPacket.o build/obj/AFSK_Demodulator.o build/obj/packet_main.o build/obj/crcccitt.o build/obj/argp.o
 
 build/obj/packet_main.o: src/packet/packet_main.c
 	$(CC) $(CFLAGS) $(DEFINES) -o $@ -c src/packet/packet_main.c
@@ -191,6 +201,9 @@ build/obj/trig_table.o: src/math/trig_table.c
 ###############################################################################
 # Utility functions                                                           #
 ###############################################################################
+
+build/obj/argp.o: src/util/argp.c
+	$(CC) $(CFLAGS) -o $@ -c src/util/argp.c
 
 build/obj/Util.o: src/util/Util.cpp
 	g++ -O3 -o $@ -c src/util/Util.cpp
