@@ -11,7 +11,7 @@
 CC=gcc
 CFLAGS=-O3 -Wall
 
-.PHONY: build disable-float
+.PHONY: build
 build: create-dirs all
 
 all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer bin/forward
