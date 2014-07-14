@@ -21,7 +21,7 @@ error_t argp_parse (struct argp *argp, int argc, char **argv, unsigned flags, in
 
 				int c = 0;
 
-				while(op->arg[0] != 0){
+				while(*(uint8_t*)op != 0){
 
 					c = 0;
 
@@ -57,7 +57,7 @@ error_t argp_parse (struct argp *argp, int argc, char **argv, unsigned flags, in
 
 				// Invalid Option
 				else {
-					return -1;
+					return ARGP_ERR_UNKNOWN;
 				}
 
 			} else {

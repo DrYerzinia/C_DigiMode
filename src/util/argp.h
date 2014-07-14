@@ -1,10 +1,11 @@
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #define OPTION_ARG_OPTIONAL 0
 
-#define ARGP_ERR_UNKNOWN 0
+#define ARGP_ERR_UNKNOWN -1
 
 struct argp_option {
 
