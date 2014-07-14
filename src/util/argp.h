@@ -3,9 +3,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define OPTION_ARG_OPTIONAL 0
+#include <string.h>
+
+#include <ctype.h>
+
+#define OPTION_ARG_OPTIONAL 1
 
 #define ARGP_ERR_UNKNOWN -1
+#define ARGP_ERR_HELP -2
 
 struct argp_option {
 
@@ -69,4 +74,4 @@ struct argp {
 
 };
 
-error_t argp_parse (struct argp *argp, int argc, char **argv, unsigned flags, int *arg_index,  void *input);
+error_t argp_parse(struct argp *argp, int argc, char **argv, unsigned flags, int *arg_index,  void *input);
