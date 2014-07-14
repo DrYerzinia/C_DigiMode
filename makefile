@@ -16,7 +16,7 @@ EXT=
 SOUND_DEVICE_MODE=-D__OSS__
 SOUND_DEVICE_LIB=
 
-.PHONY: build enable-debug disable-float fast-algorithms sound-device-alsa
+.PHONY: build
 build: create-dirs all
 
 all: bin/psk31 bin/filter_test bin/packet bin/sound_device bin/NOAA_ATP bin/mixer bin/forward bin/UARTRecord

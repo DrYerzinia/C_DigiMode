@@ -18,8 +18,8 @@ void AFSK_Demodulator_reset(AFSK_Demodulator *self){
 	/*
 	 * Calculate Goertzel coefficents for calculating frequency magnitudes
 	 */
-	float k0 = (int)(0.5+((float)self->window*self->frequency_0/self->sample_rate));
-	float k1 = (int)(0.5+((float)self->window*self->frequency_1/self->sample_rate));
+	float k0 = ((float)self->window*self->frequency_0/self->sample_rate);
+	float k1 = ((float)self->window*self->frequency_1/self->sample_rate);
 	float w0 = (2*PI/self->window)*k0;
 	float w1 = (2*PI/self->window)*k1;
 
@@ -149,7 +149,7 @@ char_array* AFSK_Demodulator_proccess_byte(AFSK_Demodulator *self, int8_t data_p
 			 * file for analysis
 			 */
 			#ifdef __DEBUG
-				fputc(fcd_avg/10000, fourier_coefficient_debug);
+				fputc(fcd_avg, fourier_coefficient_debug);
 			#endif
 
 			uint8_t current_value = 0;
